@@ -36,8 +36,8 @@
     el.className = "sheet";
     el.innerHTML =
       '<div class="banner">' +
-        '<div class="avatar" style="background:linear-gradient(180deg,' + esc(accent) + ',' + esc(accent) + 'bb)">' +
-          esc(ARPO.initials(c)) + "</div>" +
+        '<div class="avatar" style="' + ARPO.avatarStyle(c) + '">' +
+          ARPO.avatarInner(c, 40) + "</div>" +
         "<div>" +
           '<div class="full">' + esc(ARPO.fullName(c)) + "</div>" +
           (c.fullTitle ? '<div class="title">' + esc(c.fullTitle) + "</div>" : "") +

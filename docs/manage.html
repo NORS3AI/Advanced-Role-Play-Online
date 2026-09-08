@@ -36,6 +36,7 @@
   <!-- Export libraries (load only where exports happen) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="assets/js/icons.js"></script>
   <script src="assets/js/store.js"></script>
   <script src="assets/js/export.js"></script>
   <script>
@@ -93,8 +94,8 @@
             "</div>" +
           "</div>" +
           '<div class="top">' +
-            '<div class="avatar" style="background:linear-gradient(180deg,' + esc(accent) + ',' + esc(accent) + 'bb)">' +
-              esc(ARPO.initials(c)) + "</div>" +
+            '<div class="avatar" style="' + ARPO.avatarStyle(c) + '">' +
+              ARPO.avatarInner(c, 30) + "</div>" +
             '<div class="names">' +
               '<div class="full">' + esc(ARPO.fullName(c)) + "</div>" +
               (c.fullTitle ? '<div class="title">' + esc(c.fullTitle) + "</div>" : "") +

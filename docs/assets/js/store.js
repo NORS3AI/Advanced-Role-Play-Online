@@ -82,6 +82,20 @@
       return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch];
     });
   };
+  ARPO.accent = function (c) { return (c && c.accent) || "#d4af6a"; };
+
+  // Avatar = dark tile with the chosen icon (or initials) in the accent color.
+  ARPO.avatarStyle = function (c) {
+    var a = ARPO.accent(c);
+    return "background:#12151f;border:1px solid " + a + "66;color:" + a;
+  };
+  ARPO.avatarInner = function (c, size) {
+    if (c && c.icon && ARPO.iconSVG) {
+      var svg = ARPO.iconSVG(c.icon, { size: size || 28 });
+      if (svg) return svg;
+    }
+    return ARPO.escapeHtml(ARPO.initials(c));
+  };
 
   // ---- toast -------------------------------------------------------------
   ARPO.toast = function (msg) {
