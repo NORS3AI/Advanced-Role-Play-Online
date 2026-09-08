@@ -34,6 +34,28 @@
     <form class="character-form" id="char-form" autocomplete="off">
       <input type="hidden" id="id" name="id">
       <input type="hidden" id="accent" name="accent" value="#d4af6a">
+      <input type="hidden" id="icon" name="icon" value="">
+
+      <fieldset>
+        <legend>Portrait</legend>
+        <div class="portrait">
+          <div class="preview">
+            <div class="avatar" id="preview-avatar"></div>
+            <div class="cap">Preview</div>
+          </div>
+          <div class="icon-tools">
+            <div>
+              <div class="lbl">Accent color</div>
+              <div class="swatches" id="swatches"></div>
+            </div>
+            <div>
+              <div class="lbl">Choose an icon</div>
+              <input type="search" id="icon-search" placeholder="Search icons — sword, fire, crown…" style="margin:8px 0">
+              <div class="icon-grid" id="icon-grid"></div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
 
       <fieldset>
         <legend>Identity</legend>
@@ -57,10 +79,6 @@
           <div class="field full">
             <label for="fullTitle">Full title</label>
             <input id="fullTitle" name="fullTitle" placeholder="High King of the Alliance">
-          </div>
-          <div class="field full">
-            <label>Accent color</label>
-            <div class="swatches" id="swatches"></div>
           </div>
         </div>
       </fieldset>
@@ -127,6 +145,7 @@
     </form>
   </main>
 
+  <script src="assets/js/icons.js"></script>
   <script src="assets/js/store.js"></script>
   <script>
     (function () {
@@ -134,20 +153,78 @@
       var params = new URLSearchParams(location.search);
       var editId = params.get("id");
 
-      // accent swatches
-      var sw = document.getElementById("swatches");
       var accentInput = document.getElementById("accent");
-      function paintSwatches(sel) {
+      var iconInput = document.getElementById("icon");
+      var preview = document.getElementById("preview-avatar");
+      var sw = document.getElementById("swatches");
+      var grid = document.getElementById("icon-grid");
+      var search = document.getElementById("icon-search");
+
+      function current() {
+        return {
+          firstName: form.elements.firstName.value,
+          lastName: form.elements.lastName.value,
+          accent: accentInput.value,
+          icon: iconInput.value
+        };
+      }
+      function refreshPreview() {
+        preview.setAttribute("style", ARPO.avatarStyle(current()));
+        preview.innerHTML = ARPO.avatarInner(current(), 40);
+      }
+
+      // accent swatches
+      function paintSwatches() {
         sw.innerHTML = "";
         ARPO.ACCENTS.forEach(function (color) {
           var b = document.createElement("button");
-          b.type = "button"; b.className = "swatch" + (color === sel ? " sel" : "");
+          b.type = "button";
+          b.className = "swatch" + (color === accentInput.value ? " sel" : "");
           b.style.background = color; b.title = color;
-          b.addEventListener("click", function () { accentInput.value = color; paintSwatches(color); });
+          b.addEventListener("click", function () {
+            accentInput.value = color; paintSwatches(); paintGrid(search.value); refreshPreview();
+          });
           sw.appendChild(b);
         });
       }
-      paintSwatches(accentInput.value);
+
+      // icon grid
+      function paintGrid(filter) {
+        filter = (filter || "").trim().toLowerCase();
+        grid.innerHTML = "";
+
+        var none = document.createElement("button");
+        none.type = "button";
+        none.className = "icon-opt none" + (iconInput.value ? "" : " sel");
+        none.title = "Use initials";
+        none.textContent = "Initials";
+        none.addEventListener("click", function () { iconInput.value = ""; paintGrid(search.value); refreshPreview(); });
+        if (!filter) grid.appendChild(none);
+
+        var matches = ARPO.ICONS.filter(function (i) {
+          return !filter || i.key.indexOf(filter) !== -1 || i.label.indexOf(filter) !== -1;
+        });
+        matches.forEach(function (i) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "icon-opt" + (iconInput.value === i.key ? " sel" : "");
+          b.title = i.key;
+          b.style.color = accentInput.value;
+          b.innerHTML = ARPO.iconSVG(i.key, { size: 24 });
+          b.addEventListener("click", function () { iconInput.value = i.key; paintGrid(search.value); refreshPreview(); });
+          grid.appendChild(b);
+        });
+
+        if (!matches.length) {
+          var e = document.createElement("div");
+          e.className = "icon-empty"; e.textContent = 'No icons match “' + filter + '”.';
+          grid.appendChild(e);
+        }
+      }
+
+      search.addEventListener("input", function () { paintGrid(search.value); });
+      form.elements.firstName.addEventListener("input", refreshPreview);
+      form.elements.lastName.addEventListener("input", refreshPreview);
 
       // edit mode: prefill
       if (editId) {
@@ -158,20 +235,24 @@
           document.getElementById("save-btn").textContent = "Save Changes";
           Object.keys(c).forEach(function (k) {
             var el = form.elements[k];
-            if (el) el.value = c[k];
+            if (el && el.type !== "hidden") el.value = c[k];
           });
           accentInput.value = c.accent || "#d4af6a";
-          paintSwatches(accentInput.value);
+          iconInput.value = c.icon || "";
         }
       }
+
+      paintSwatches();
+      paintGrid("");
+      refreshPreview();
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var data = {};
         Array.prototype.forEach.call(form.elements, function (el) {
-          if (el.name) data[el.name] = el.value.trim ? el.value.trim() : el.value;
+          if (el.name) data[el.name] = typeof el.value === "string" ? el.value.trim() : el.value;
         });
-        if (!data.firstName) { ARPO.toast("Please enter a first name."); return; }
+        if (!data.firstName) { ARPO.toast("Please enter a first name."); form.elements.firstName.focus(); return; }
         if (!data.id) delete data.id;
         ARPO.upsert(data);
         location.href = "manage.html";
