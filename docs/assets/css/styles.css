@@ -98,9 +98,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 
 /* ---- Landing / hero ---------------------------------------------------- */
 .hero {
-  min-height: calc(100vh - 64px);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; padding: 60px 20px;
+  text-align: center; padding: 64px 20px 44px;
 }
 .hero .logo { width: 132px; height: 132px; filter: drop-shadow(0 8px 24px rgba(0,0,0,.5)); }
 .hero h1 {
@@ -113,6 +112,24 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 .hero .cta { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
 .hero .cta .btn { min-width: 210px; }
 .hero .hint { margin-top: 26px; color: var(--faint); font-size: .85rem; }
+
+/* ---- Landing: "Your Characters" dashboard ------------------------------ */
+.yours { padding: 6px 0 72px; }
+.yours h2 { font-size: clamp(1.4rem, 3.5vw, 2rem); margin: 0 0 4px; }
+.yours .greeting { color: var(--gold); font-family: var(--font-display); font-size: 1.1rem; margin: 0 0 20px; }
+.mini-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.mini-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; min-width: 0;
+  background: linear-gradient(180deg, var(--panel), var(--bg-2));
+  border: 1px solid var(--border); border-radius: 12px; color: var(--text);
+  transition: border-color .15s ease, transform .1s ease;
+}
+.mini-card:hover { border-color: var(--border-2); transform: translateY(-2px); color: var(--text); }
+.mini-card .avatar { width: 46px; height: 46px; border-radius: 10px; font-size: 1.1rem; }
+.mini-card .mc-text { min-width: 0; }
+.mini-card .mc-name { font-family: var(--font-display); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini-card .mc-sub { color: var(--muted); font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yours .more { margin-top: 18px; display: inline-block; }
 
 /* ---- Page heading ------------------------------------------------------ */
 .page { padding: 40px 0 80px; }
@@ -145,6 +162,10 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 .char-card .meta { margin-top: 14px; color: var(--muted); font-size: .9rem; display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .char-card .meta .k { color: var(--faint); }
 .char-card .blurb { margin-top: 12px; color: var(--muted); font-size: .9rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.char-card .card-actions { display: flex; align-items: center; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+.char-card .card-actions .spacer { flex: 1; }
+.dropdown { position: relative; }
+.dropdown > .menu { left: 0; right: auto; top: 42px; min-width: 180px; }
 
 /* status pill */
 .pill { display: inline-flex; align-items: center; gap: 6px; font-size: .74rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border-2); color: var(--muted); }

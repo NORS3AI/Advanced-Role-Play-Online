@@ -33,7 +33,6 @@
     <div id="content"></div>
   </main>
 
-  <!-- Export libraries (load only where exports happen) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="assets/js/icons.js"></script>
@@ -44,6 +43,13 @@
       var content = document.getElementById("content");
       var sub = document.getElementById("count-sub");
       var esc = ARPO.escapeHtml;
+      var enc = encodeURIComponent;
+
+      function closeAllMenus() {
+        [].forEach.call(document.querySelectorAll(".menu.open"), function (m) { m.classList.remove("open"); });
+      }
+      document.addEventListener("click", closeAllMenus);
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeAllMenus(); });
 
       function render() {
         var list = ARPO.loadAll().slice().sort(function (a, b) {
@@ -73,7 +79,6 @@
       function card(c) {
         var el = document.createElement("div");
         el.className = "char-card";
-        var accent = c.accent || "#d4af6a";
         var status = c.rpStatus === "ic"
           ? '<span class="pill ic"><span class="dot"></span>In Character</span>'
           : '<span class="pill ooc"><span class="dot"></span>Out of Character</span>';
@@ -81,22 +86,8 @@
         var blurb = c.personality || c.physical || c.history || c.currently || "";
 
         el.innerHTML =
-          '<div class="kebab-wrap">' +
-            '<button class="kebab" aria-label="Actions" title="Actions">⋯</button>' +
-            '<div class="menu" role="menu">' +
-              '<button data-act="view"><span class="ico">👁</span> View profile</button>' +
-              '<button data-act="edit"><span class="ico">✎</span> Edit</button>' +
-              '<div class="label">Save as</div>' +
-              '<button data-act="png"><span class="ico">🖼</span> PNG image</button>' +
-              '<button data-act="pdf"><span class="ico">📄</span> PDF</button>' +
-              '<button data-act="word"><span class="ico">📝</span> Word document</button>' +
-              '<div class="sep"></div>' +
-              '<button class="danger" data-act="delete"><span class="ico">🗑</span> Delete</button>' +
-            "</div>" +
-          "</div>" +
           '<div class="top">' +
-            '<div class="avatar" style="' + ARPO.avatarStyle(c) + '">' +
-              ARPO.avatarInner(c, 30) + "</div>" +
+            '<div class="avatar" style="' + ARPO.avatarStyle(c) + '">' + ARPO.avatarInner(c, 30) + "</div>" +
             '<div class="names">' +
               '<div class="full">' + esc(ARPO.fullName(c)) + "</div>" +
               (c.fullTitle ? '<div class="title">' + esc(c.fullTitle) + "</div>" : "") +
@@ -104,61 +95,59 @@
           "</div>" +
           (rc ? '<div class="meta"><span>' + esc(rc) + "</span></div>" : "") +
           (blurb ? '<div class="blurb">' + esc(blurb) + "</div>" : "") +
-          '<div class="meta" style="margin-top:12px">' + status + "</div>";
+          '<div class="meta" style="margin-top:12px">' + status + "</div>" +
+          '<div class="card-actions">' +
+            '<button class="btn btn-sm btn-ghost" data-act="edit">✎ Edit</button>' +
+            '<div class="dropdown">' +
+              '<button class="btn btn-sm btn-ghost" data-act="export-toggle">⤓ Export ▾</button>' +
+              '<div class="menu" role="menu">' +
+                '<div class="label">Save as</div>' +
+                '<button data-act="png"><span class="ico">🖼</span> PNG image</button>' +
+                '<button data-act="pdf"><span class="ico">📄</span> PDF</button>' +
+                '<button data-act="word"><span class="ico">📝</span> Word document</button>' +
+              "</div>" +
+            "</div>" +
+            '<span class="spacer"></span>' +
+            '<button class="btn btn-sm btn-danger" data-act="delete" title="Delete" aria-label="Delete">🗑</button>' +
+          "</div>";
 
-        // click card body -> open profile (ignore clicks in the kebab menu)
+        // View when the card body is activated (keyboard)
         el.style.cursor = "pointer";
         el.setAttribute("role", "link");
         el.setAttribute("tabindex", "0");
         el.setAttribute("aria-label", "View " + ARPO.fullName(c));
-        function openProfile() { location.href = "character.html?id=" + encodeURIComponent(c.id); }
-        el.addEventListener("click", function (e) {
-          if (e.target.closest(".kebab-wrap")) return;
-          openProfile();
-        });
+        function openProfile() { location.href = "character.html?id=" + enc(c.id); }
         el.addEventListener("keydown", function (e) {
-          if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".kebab-wrap")) { e.preventDefault(); openProfile(); }
+          if ((e.key === "Enter" || e.key === " ") && e.target === el) { e.preventDefault(); openProfile(); }
         });
 
-        // kebab open/close
-        var wrap = el.querySelector(".kebab-wrap");
-        var menu = el.querySelector(".menu");
-        el.querySelector(".kebab").addEventListener("click", function (e) {
-          e.stopPropagation();
-          var isOpen = menu.classList.contains("open");
-          closeAllMenus();
-          if (!isOpen) menu.classList.add("open");
-        });
-
-        // actions
-        menu.addEventListener("click", function (e) {
+        el.addEventListener("click", function (e) {
           var btn = e.target.closest("button[data-act]");
-          if (!btn) return;
-          e.stopPropagation();
-          menu.classList.remove("open");
-          var act = btn.getAttribute("data-act");
-          if (act === "view") { location.href = "character.html?id=" + encodeURIComponent(c.id); }
-          else if (act === "edit") { location.href = "create.html?id=" + encodeURIComponent(c.id); }
-          else if (act === "png") { ARPO.exportPNG(c); }
-          else if (act === "pdf") { ARPO.exportPDF(c); }
-          else if (act === "word") { ARPO.exportWord(c); }
-          else if (act === "delete") {
-            if (confirm("Delete “" + ARPO.fullName(c) + "”? This cannot be undone.")) {
-              ARPO.remove(c.id); ARPO.toast("Character deleted"); render();
+          if (btn) {
+            e.stopPropagation();
+            var act = btn.getAttribute("data-act");
+            if (act === "export-toggle") {
+              var menu = el.querySelector(".dropdown .menu");
+              var open = menu.classList.contains("open");
+              closeAllMenus();
+              if (!open) menu.classList.add("open");
+            } else if (act === "edit") {
+              location.href = "create.html?id=" + enc(c.id);
+            } else if (act === "png") { closeAllMenus(); ARPO.exportPNG(c); }
+            else if (act === "pdf") { closeAllMenus(); ARPO.exportPDF(c); }
+            else if (act === "word") { closeAllMenus(); ARPO.exportWord(c); }
+            else if (act === "delete") {
+              if (confirm("Delete “" + ARPO.fullName(c) + "”? This cannot be undone.")) {
+                ARPO.remove(c.id); ARPO.toast("Character deleted"); render();
+              }
             }
+            return;
           }
+          openProfile();
         });
 
         return el;
       }
-
-      function closeAllMenus() {
-        Array.prototype.forEach.call(document.querySelectorAll(".menu.open"), function (m) {
-          m.classList.remove("open");
-        });
-      }
-      document.addEventListener("click", closeAllMenus);
-      document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeAllMenus(); });
 
       render();
     })();
