@@ -33,6 +33,7 @@
     <div id="content"></div>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="assets/js/icons.js"></script>
@@ -105,6 +106,8 @@
                 '<button data-act="png"><span class="ico">🖼</span> PNG image</button>' +
                 '<button data-act="pdf"><span class="ico">📄</span> PDF</button>' +
                 '<button data-act="word"><span class="ico">📝</span> Word document</button>' +
+                '<div class="sep"></div>' +
+                '<button data-act="share"><span class="ico">🔗</span> Copy share link</button>' +
               "</div>" +
             "</div>" +
             '<span class="spacer"></span>' +
@@ -136,6 +139,7 @@
             } else if (act === "png") { closeAllMenus(); ARPO.exportPNG(c); }
             else if (act === "pdf") { closeAllMenus(); ARPO.exportPDF(c); }
             else if (act === "word") { closeAllMenus(); ARPO.exportWord(c); }
+            else if (act === "share") { closeAllMenus(); ARPO.copyShare(c); }
             else if (act === "delete") {
               if (confirm("Delete “" + ARPO.fullName(c) + "”? This cannot be undone.")) {
                 ARPO.remove(c.id); ARPO.toast("Character deleted"); render();

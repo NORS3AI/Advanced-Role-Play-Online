@@ -25,6 +25,76 @@
     return "<h3>" + esc(title) + '</h3><p class="text">' + esc(text) + "</p>";
   }
 
+  // ---- custom sections ---------------------------------------------------
+  function csItem(it, forExport) {
+    var lbl = it.label ? esc(it.label) : "";
+    if (it.type === "text") {
+      if (!it.value && !lbl) return "";
+      return (lbl ? '<h4 class="cs-h">' + lbl + "</h4>" : "") +
+        (it.value ? '<p class="text">' + esc(it.value) + "</p>" : "");
+    }
+    if (it.type === "slider") {
+      var min = Number(it.min || 0), max = Number(it.max != null ? it.max : 100), val = Number(it.value || 0);
+      var pct = max > min ? Math.max(0, Math.min(100, Math.round((val - min) / (max - min) * 100))) : 0;
+      return '<div class="cs-slider"><div class="cs-slider-head"><span>' + (lbl || "") +
+        '</span><span class="cs-num">' + esc(val) + " / " + esc(max) + "</span></div>" +
+        '<div class="cs-bar"><div class="cs-fill" style="width:' + pct + '%"></div></div></div>';
+    }
+    if (it.type === "link") {
+      if (!it.url) return "";
+      return '<p class="cs-link">🔗 <a href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer">' +
+        (lbl || esc(it.url)) + "</a></p>";
+    }
+    if (it.type === "button") {
+      if (!it.url) return "";
+      return '<p><a class="btn btn-sm cs-btn" href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer">' +
+        (lbl || "Open") + "</a></p>";
+    }
+    if (it.type === "icon") {
+      var ic = ARPO.inlineIcon(it.iconKind, it.icon, 28, forExport);
+      if (!ic && !lbl) return "";
+      return '<div class="cs-iconrow"><span class="cs-ic">' + ic + "</span>" + (lbl ? "<span>" + lbl + "</span>" : "") + "</div>";
+    }
+    if (it.type === "image") {
+      if (!it.url) return "";
+      var co = forExport ? ' crossorigin="anonymous"' : "";
+      return '<figure class="cs-image"><img alt=""' + co + ' src="' + esc(it.url) +
+        '" onerror="this.style.display=\'none\'">' + (lbl ? "<figcaption>" + lbl + "</figcaption>" : "") + "</figure>";
+    }
+    return "";
+  }
+  ARPO.renderCustomSections = function (c, forExport) {
+    var secs = (c && c.customSections) || [];
+    if (!secs.length) return "";
+    return secs.map(function (s) {
+      var items = (s.items || []).map(function (it) { return csItem(it, forExport); }).join("");
+      if (!items && !s.title) return "";
+      return (s.title ? "<h3>" + esc(s.title) + "</h3>" : "") + items;
+    }).join("");
+  };
+
+  // Word (.doc) rendering of custom sections.
+  function wordCustom(c, accent) {
+    var secs = (c && c.customSections) || [];
+    if (!secs.length) return "";
+    return secs.map(function (s) {
+      var body = (s.items || []).map(function (it) {
+        var lbl = it.label ? esc(it.label) : "";
+        if (it.type === "text") return (lbl ? "<p><b>" + lbl + "</b></p>" : "") + (it.value ? '<p style="margin:0 0 8px">' + esc(it.value).replace(/\n/g, "<br>") + "</p>" : "");
+        if (it.type === "slider") return '<p style="margin:0 0 6px">' + (lbl ? "<b>" + lbl + ":</b> " : "") + esc(it.value != null ? it.value : "") + " / " + esc(it.max != null ? it.max : 100) + "</p>";
+        if (it.type === "link" || it.type === "button") return it.url ? '<p style="margin:0 0 6px"><a href="' + esc(it.url) + '">' + (lbl || esc(it.url)) + "</a></p>" : "";
+        if (it.type === "icon") {
+          var img = it.iconKind === "wow" && it.icon ? '<img src="' + esc(ARPO.wowIconUrl(it.icon)) + '" width="20" height="20"> ' : "";
+          return (img || lbl) ? '<p style="margin:0 0 6px">' + img + lbl + "</p>" : "";
+        }
+        if (it.type === "image") return it.url ? '<p style="margin:0 0 6px"><img src="' + esc(it.url) + '" style="max-width:420px"><br>' + lbl + "</p>" : "";
+        return "";
+      }).join("");
+      if (!body && !s.title) return "";
+      return (s.title ? '<h2 style="color:' + accent + ';font-family:Georgia,serif;margin:16px 0 4px">' + esc(s.title) + "</h2>" : "") + body;
+    }).join("");
+  }
+
   // Build the character-sheet DOM node (styled by .sheet in styles.css).
   ARPO.buildSheet = function (c, forExport) {
     var accent = c.accent || "#d4af6a";
@@ -53,6 +123,7 @@
         section("Personality", c.personality) +
         section("History", c.history) +
         (c.currently ? section("Currently", c.currently) : "") +
+        ARPO.renderCustomSections(c, forExport) +
       "</div>" +
       '<div class="foot"><span>Advanced Role Play Online</span>' + status + "</div>";
     return el;
@@ -153,6 +224,7 @@
         block("Personality", c.personality) +
         block("History", c.history) +
         block("Currently", c.currently) +
+        wordCustom(c, accent) +
         '<hr><div style="color:#999;font-size:12px">Advanced Role Play Online &middot; ' +
           (c.rpStatus === "ic" ? "In Character" : "Out of Character") + "</div>" +
       "</body></html>";
