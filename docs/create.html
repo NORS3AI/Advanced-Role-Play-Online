@@ -164,6 +164,13 @@
         </div>
       </fieldset>
 
+      <fieldset>
+        <legend>Custom Sections</legend>
+        <p class="help" style="margin:-4px 0 6px">Add your own sections with text, sliders, links, buttons, icons, and images.</p>
+        <div id="sections"></div>
+        <button type="button" class="btn btn-sm" id="add-section">＋ Add section</button>
+      </fieldset>
+
       <div class="form-actions">
         <a class="btn btn-ghost" href="manage.html">Cancel</a>
         <button class="btn btn-primary" type="submit" id="save-btn">Save Character</button>
@@ -173,6 +180,7 @@
 
   <script src="assets/js/icons.js"></script>
   <script src="assets/js/store.js"></script>
+  <script src="assets/js/builder.js"></script>
   <script>
     (function () {
       var form = document.getElementById("char-form");
@@ -191,6 +199,9 @@
       var wowGrid = document.getElementById("wow-grid");
       var svgSearch = document.getElementById("icon-search");
       var svgGrid = document.getElementById("icon-grid");
+
+      var editor = ARPO.createSectionsEditor(
+        document.getElementById("sections"), document.getElementById("add-section"));
 
       function draft() {
         return {
@@ -315,6 +326,7 @@
           // normalize icon kind (older characters stored an SVG key with no kind)
           kindInput.value = c.iconKind || (c.icon ? "svg" : "");
           iconInput.value = c.icon || "";
+          editor.load(c.customSections || []);
         }
       }
 
@@ -337,6 +349,8 @@
         if (!data.firstName) { ARPO.toast("Please enter a first name."); form.elements.firstName.focus(); return; }
         if (data.iconKind === "wow" && data.icon) data.icon = data.icon.toLowerCase();
         if (!data.icon) data.iconKind = "";
+        var sections = editor.serialize();
+        if (sections.length) data.customSections = sections; else delete data.customSections;
         if (!data.id) delete data.id;
         ARPO.upsert(data);
         location.href = "manage.html";

@@ -106,6 +106,47 @@
     return ARPO.escapeHtml(ARPO.initials(c));
   };
 
+  // ---- share links (encode a character into a URL, no backend) -----------
+  ARPO.encodeShare = function (c) {
+    var copy = {};
+    Object.keys(c || {}).forEach(function (k) {
+      if (k !== "id" && k !== "createdAt" && k !== "updatedAt") copy[k] = c[k];
+    });
+    var json = JSON.stringify(copy);
+    if (window.LZString && LZString.compressToEncodedURIComponent) {
+      return "1" + LZString.compressToEncodedURIComponent(json);
+    }
+    return "0" + btoa(unescape(encodeURIComponent(json)))
+      .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  };
+  ARPO.decodeShare = function (s) {
+    try {
+      if (!s) return null;
+      var mode = s.charAt(0), body = s.slice(1), json;
+      if (mode === "1" && window.LZString) json = LZString.decompressFromEncodedURIComponent(body);
+      else if (mode === "0") json = decodeURIComponent(escape(atob(body.replace(/-/g, "+").replace(/_/g, "/"))));
+      else return null;
+      return json ? JSON.parse(json) : null;
+    } catch (e) { return null; }
+  };
+  ARPO.shareUrl = function (c) {
+    var u = new URL("character.html", location.href);
+    u.hash = "c=" + ARPO.encodeShare(c);
+    return u.href;
+  };
+  ARPO.copyShare = function (c) {
+    var url = ARPO.shareUrl(c);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(
+        function () { ARPO.toast("Share link copied!"); },
+        function () { ARPO.toast("Copy failed — link shown below."); }
+      );
+    } else {
+      ARPO.toast("Share link ready — copy it below.");
+    }
+    return url;
+  };
+
   // ---- toast -------------------------------------------------------------
   ARPO.toast = function (msg) {
     var el = document.querySelector(".toast");

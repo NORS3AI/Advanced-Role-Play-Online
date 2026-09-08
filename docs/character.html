@@ -28,6 +28,7 @@
     <div class="profile-wrap" id="wrap"></div>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="assets/js/icons.js"></script>
@@ -36,27 +37,31 @@
   <script>
     (function () {
       var wrap = document.getElementById("wrap");
-      var id = new URLSearchParams(location.search).get("id");
-      var c = id ? ARPO.get(id) : null;
+
+      // Shared link? (#c=<payload>) — render read-only from the URL.
+      var hash = location.hash || "";
+      var shared = false, c = null;
+      var m = hash.match(/[#&]c=([^&]+)/);
+      if (m) { shared = true; c = ARPO.decodeShare(m[1]); }
+      else {
+        var id = new URLSearchParams(location.search).get("id");
+        c = id ? ARPO.get(id) : null;
+      }
 
       if (!c) {
         wrap.innerHTML =
           '<div class="profile-missing">' +
             "<h2>Character not found</h2>" +
-            "<p>This character may have been deleted, or the link is incorrect.</p>" +
-            '<p style="margin-top:16px"><a class="btn btn-primary" href="manage.html">Back to your characters</a></p>' +
+            "<p>" + (shared ? "This shared link looks broken or incomplete." :
+                     "This character may have been deleted, or the link is incorrect.") + "</p>" +
+            '<p style="margin-top:16px"><a class="btn btn-primary" href="manage.html">Your characters</a></p>' +
           "</div>";
         return;
       }
 
       document.title = ARPO.fullName(c) + " · ARPO";
 
-      var toolbar = document.createElement("div");
-      toolbar.className = "profile-toolbar";
-      toolbar.innerHTML =
-        '<a class="btn btn-sm btn-ghost" href="manage.html">&larr; All characters</a>' +
-        '<span class="spacer"></span>' +
-        '<a class="btn btn-sm btn-primary" href="create.html?id=' + encodeURIComponent(c.id) + '">&#9998; Edit</a>' +
+      var exportMenu =
         '<div class="kebab-wrap" style="position:relative">' +
           '<button class="btn btn-sm" id="save-as">Save as &#9662;</button>' +
           '<div class="menu" id="save-menu" style="right:0;top:46px">' +
@@ -64,19 +69,45 @@
             '<button data-act="pdf"><span class="ico">&#128196;</span> PDF</button>' +
             '<button data-act="word"><span class="ico">&#128221;</span> Word document</button>' +
           "</div>" +
-        "</div>" +
-        '<button class="btn btn-sm btn-danger" id="del-btn"><span>&#128465;</span> Delete</button>';
+        "</div>";
+
+      var toolbar = document.createElement("div");
+      toolbar.className = "profile-toolbar";
+
+      if (shared) {
+        wrap.innerHTML =
+          '<div class="shared-banner">You\'re viewing a <b>shared character</b>. ' +
+          "Save a copy to keep and edit it in your own collection.</div>";
+        toolbar.innerHTML =
+          '<a class="btn btn-sm btn-ghost" href="index.html">&larr; ARPO home</a>' +
+          '<span class="spacer"></span>' +
+          '<button class="btn btn-sm btn-primary" id="save-copy">&#11015; Save a copy</button>' +
+          exportMenu;
+      } else {
+        toolbar.innerHTML =
+          '<a class="btn btn-sm btn-ghost" href="manage.html">&larr; All characters</a>' +
+          '<span class="spacer"></span>' +
+          '<a class="btn btn-sm btn-ghost" href="create.html?id=' + encodeURIComponent(c.id) + '">&#9998; Edit</a>' +
+          '<button class="btn btn-sm btn-primary" id="share-btn">&#128279; Share</button>' +
+          exportMenu +
+          '<button class="btn btn-sm btn-danger" id="del-btn"><span>&#128465;</span> Delete</button>';
+      }
+
+      var shareRow = document.createElement("div");
+      shareRow.className = "share-row"; shareRow.hidden = true;
+      shareRow.innerHTML = '<input id="share-url" readonly aria-label="Share link">' +
+        '<button class="btn btn-sm" id="share-copy">Copy</button>';
 
       var host = document.createElement("div");
       host.appendChild(ARPO.buildSheet(c));
 
       wrap.appendChild(toolbar);
+      wrap.appendChild(shareRow);
       wrap.appendChild(host);
 
       // Save-as dropdown
-      var saveBtn = toolbar.querySelector("#save-as");
       var menu = toolbar.querySelector("#save-menu");
-      saveBtn.addEventListener("click", function (e) {
+      toolbar.querySelector("#save-as").addEventListener("click", function (e) {
         e.stopPropagation(); menu.classList.toggle("open");
       });
       menu.addEventListener("click", function (e) {
@@ -90,13 +121,31 @@
       document.addEventListener("click", function () { menu.classList.remove("open"); });
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") menu.classList.remove("open"); });
 
-      // Delete
-      toolbar.querySelector("#del-btn").addEventListener("click", function () {
-        if (confirm("Delete “" + ARPO.fullName(c) + "”? This cannot be undone.")) {
-          ARPO.remove(c.id);
-          location.href = "manage.html";
-        }
-      });
+      if (shared) {
+        toolbar.querySelector("#save-copy").addEventListener("click", function () {
+          var copy = JSON.parse(JSON.stringify(c));
+          delete copy.id; delete copy.createdAt; delete copy.updatedAt;
+          var saved = ARPO.upsert(copy);
+          ARPO.toast("Saved to your characters");
+          location.href = "character.html?id=" + encodeURIComponent(saved.id);
+        });
+      } else {
+        var input = shareRow.querySelector("#share-url");
+        toolbar.querySelector("#share-btn").addEventListener("click", function () {
+          var url = ARPO.copyShare(c);
+          input.value = url; shareRow.hidden = false; input.focus(); input.select();
+        });
+        shareRow.querySelector("#share-copy").addEventListener("click", function () {
+          input.select();
+          if (navigator.clipboard) navigator.clipboard.writeText(input.value).then(function () { ARPO.toast("Copied!"); });
+          else { document.execCommand && document.execCommand("copy"); ARPO.toast("Copied!"); }
+        });
+        toolbar.querySelector("#del-btn").addEventListener("click", function () {
+          if (confirm("Delete “" + ARPO.fullName(c) + "”? This cannot be undone.")) {
+            ARPO.remove(c.id); location.href = "manage.html";
+          }
+        });
+      }
     })();
   </script>
 </body>

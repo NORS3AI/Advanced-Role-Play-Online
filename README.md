@@ -35,14 +35,16 @@ generic so it can grow to other games, tabletop settings, and original worlds.
     alignment, birthplace, residence
   - **About** — quote, physical description, personality, history
   - **Currently** — in-character / out-of-character status and current activity
+  - **Custom Sections** — add your own sections containing **text**, **sliders**,
+    **links**, **buttons**, **icons** (WoW or bundled), and **images**
 - **Manage Characters** — a gallery of everything you've created. Click a card
-  to open the character's **profile page**, or use the **⋯ menu** to:
-  - **View profile**
-  - **Edit** the character
-  - **Delete** the character
-  - **Save as PNG**, **PDF**, or **Word document** (a formatted character sheet)
-- **Character profile page** — a full, shareable character sheet with the same
-  Edit / Save-as / Delete actions.
+  to open the character's **profile page**, or use each card's action bar to
+  **Edit**, **Export** (PNG / PDF / Word), **Copy share link**, or **Delete**.
+- **Character profile page** — a full character sheet with **Edit**, **Share**,
+  **Save as** (PNG / PDF / Word), and **Delete**.
+- **Share links** — share a character with a link. The character is encoded
+  into the URL itself (no account needed); opening the link shows a read-only
+  profile with a **Save a copy** option.
 
 ## How it works
 
@@ -50,8 +52,14 @@ ARPO is a static site hosted on **GitHub Pages**, so there's no server and no
 login. Your characters are saved **privately in your browser** (via
 `localStorage`) — they stay on the device/browser you created them on.
 
-> Cross-device sync and shareable public profiles are a natural next step and
-> would require adding a backend.
+**Share links** work without a backend by encoding the character straight into
+the URL (compressed with [lz-string](https://github.com/pieroxy/lz-string), with
+a base64 fallback). Anyone who opens the link sees the profile — nothing is
+stored on a server. Very large characters (e.g. big embedded images) make long
+links; prefer image **URLs** over pasted data for the shortest links.
+
+> Cross-device sync for your own roster is a natural next step and would require
+> adding a backend.
 
 ## Project structure
 
@@ -64,8 +72,9 @@ docs/                     ← GitHub Pages site root (served from main/docs)
 ├── .nojekyll             ← serve files as-is (no Jekyll processing)
 └── assets/
     ├── css/styles.css     ← design system + character-sheet styles
-    ├── js/store.js        ← character storage (localStorage) + helpers
+    ├── js/store.js        ← character storage (localStorage) + share links
     ├── js/icons.js        ← bundled SVG icons + WoW (Wowhead) icon helpers
+    ├── js/builder.js      ← custom-sections editor
     ├── js/export.js       ← PNG / PDF / Word export + sheet rendering
     └── img/logo.svg       ← ARPO emblem
 ```

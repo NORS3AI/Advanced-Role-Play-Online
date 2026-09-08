@@ -108,4 +108,15 @@
     return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size +
       '" fill="none" aria-hidden="true" style="display:block">' + ic.svg + "</svg>";
   };
+
+  // Inline icon markup for custom-section items: a WoW image or a bundled SVG.
+  ARPO.inlineIcon = function (kind, name, size, forExport) {
+    if (!name) return "";
+    if (kind === "wow") {
+      var co = forExport ? ' crossorigin="anonymous"' : "";
+      return '<img class="ci-img" alt=""' + co + ' src="' + ARPO.wowIconUrl(name) +
+        '" onerror="this.style.display=\'none\'">';
+    }
+    return ARPO.iconSVG(name, { size: size || 22 });
+  };
 })();
