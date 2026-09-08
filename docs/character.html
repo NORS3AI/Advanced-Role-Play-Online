@@ -61,18 +61,18 @@
 
       document.title = ARPO.fullName(c) + " · ARPO";
 
-      var exportMenu =
-        '<div class="kebab-wrap" style="position:relative">' +
-          '<button class="btn btn-sm" id="save-as">Save as &#9662;</button>' +
-          '<div class="menu" id="save-menu" style="right:0;top:46px">' +
-            '<button data-act="png"><span class="ico">&#128444;</span> PNG image</button>' +
-            '<button data-act="pdf"><span class="ico">&#128196;</span> PDF</button>' +
-            '<button data-act="word"><span class="ico">&#128221;</span> Word document</button>' +
-          "</div>" +
-        "</div>";
-
       var toolbar = document.createElement("div");
       toolbar.className = "profile-toolbar";
+
+      // The Save-as dropdown is anchored to the whole toolbar (not the button),
+      // so it always opens below the toolbar and never overlaps the buttons.
+      var menu = document.createElement("div");
+      menu.className = "menu pt-menu";
+      menu.innerHTML =
+        '<div class="label">Save as</div>' +
+        '<button data-act="png"><span class="ico">&#128444;</span> PNG image</button>' +
+        '<button data-act="pdf"><span class="ico">&#128196;</span> PDF</button>' +
+        '<button data-act="word"><span class="ico">&#128221;</span> Word document</button>';
 
       if (shared) {
         wrap.innerHTML =
@@ -82,16 +82,17 @@
           '<a class="btn btn-sm btn-ghost" href="index.html">&larr; ARPO home</a>' +
           '<span class="spacer"></span>' +
           '<button class="btn btn-sm btn-primary" id="save-copy">&#11015; Save a copy</button>' +
-          exportMenu;
+          '<button class="btn btn-sm" id="save-as">Save as &#9662;</button>';
       } else {
         toolbar.innerHTML =
           '<a class="btn btn-sm btn-ghost" href="manage.html">&larr; All characters</a>' +
           '<span class="spacer"></span>' +
           '<a class="btn btn-sm btn-ghost" href="create.html?id=' + encodeURIComponent(c.id) + '">&#9998; Edit</a>' +
           '<button class="btn btn-sm btn-primary" id="share-btn">&#128279; Share</button>' +
-          exportMenu +
+          '<button class="btn btn-sm" id="save-as">Save as &#9662;</button>' +
           '<button class="btn btn-sm btn-danger" id="del-btn"><span>&#128465;</span> Delete</button>';
       }
+      toolbar.appendChild(menu);
 
       var shareRow = document.createElement("div");
       shareRow.className = "share-row"; shareRow.hidden = true;
@@ -106,7 +107,6 @@
       wrap.appendChild(host);
 
       // Save-as dropdown
-      var menu = toolbar.querySelector("#save-menu");
       toolbar.querySelector("#save-as").addEventListener("click", function (e) {
         e.stopPropagation(); menu.classList.toggle("open");
       });
