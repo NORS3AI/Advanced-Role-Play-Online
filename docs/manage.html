@@ -84,6 +84,7 @@
           '<div class="kebab-wrap">' +
             '<button class="kebab" aria-label="Actions" title="Actions">⋯</button>' +
             '<div class="menu" role="menu">' +
+              '<button data-act="view"><span class="ico">👁</span> View profile</button>' +
               '<button data-act="edit"><span class="ico">✎</span> Edit</button>' +
               '<div class="label">Save as</div>' +
               '<button data-act="png"><span class="ico">🖼</span> PNG image</button>' +
@@ -105,6 +106,20 @@
           (blurb ? '<div class="blurb">' + esc(blurb) + "</div>" : "") +
           '<div class="meta" style="margin-top:12px">' + status + "</div>";
 
+        // click card body -> open profile (ignore clicks in the kebab menu)
+        el.style.cursor = "pointer";
+        el.setAttribute("role", "link");
+        el.setAttribute("tabindex", "0");
+        el.setAttribute("aria-label", "View " + ARPO.fullName(c));
+        function openProfile() { location.href = "character.html?id=" + encodeURIComponent(c.id); }
+        el.addEventListener("click", function (e) {
+          if (e.target.closest(".kebab-wrap")) return;
+          openProfile();
+        });
+        el.addEventListener("keydown", function (e) {
+          if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".kebab-wrap")) { e.preventDefault(); openProfile(); }
+        });
+
         // kebab open/close
         var wrap = el.querySelector(".kebab-wrap");
         var menu = el.querySelector(".menu");
@@ -122,7 +137,8 @@
           e.stopPropagation();
           menu.classList.remove("open");
           var act = btn.getAttribute("data-act");
-          if (act === "edit") { location.href = "create.html?id=" + encodeURIComponent(c.id); }
+          if (act === "view") { location.href = "character.html?id=" + encodeURIComponent(c.id); }
+          else if (act === "edit") { location.href = "create.html?id=" + encodeURIComponent(c.id); }
           else if (act === "png") { ARPO.exportPNG(c); }
           else if (act === "pdf") { ARPO.exportPDF(c); }
           else if (act === "word") { ARPO.exportWord(c); }

@@ -34,6 +34,7 @@
     <form class="character-form" id="char-form" autocomplete="off">
       <input type="hidden" id="id" name="id">
       <input type="hidden" id="accent" name="accent" value="#d4af6a">
+      <input type="hidden" id="iconKind" name="iconKind" value="">
       <input type="hidden" id="icon" name="icon" value="">
 
       <fieldset>
@@ -46,12 +47,37 @@
           <div class="icon-tools">
             <div>
               <div class="lbl">Accent color</div>
-              <div class="swatches" id="swatches"></div>
+              <div class="swatches" id="swatches" style="margin-top:6px"></div>
             </div>
             <div>
-              <div class="lbl">Choose an icon</div>
-              <input type="search" id="icon-search" placeholder="Search icons — sword, fire, crown…" style="margin:8px 0">
-              <div class="icon-grid" id="icon-grid"></div>
+              <div class="lbl" style="margin-bottom:8px">Icon</div>
+              <div class="tabs" id="icon-tabs">
+                <button type="button" class="tab active" data-tab="wow">WoW Icons</button>
+                <button type="button" class="tab" data-tab="svg">Simple</button>
+                <button type="button" class="tab" data-tab="none">Initials</button>
+              </div>
+
+              <div class="tab-panel" data-panel="wow" style="margin-top:12px">
+                <div class="wow-custom">
+                  <div class="thumb" id="wow-thumb">?</div>
+                  <input type="text" id="wow-name" placeholder="Wowhead icon name — e.g. spell_fire_fireball02">
+                </div>
+                <div class="wow-help" style="margin-top:6px">
+                  Use any WoW icon: find its name on
+                  <a href="https://www.wowhead.com/icons" target="_blank" rel="noopener">wowhead.com/icons</a>
+                  (the icon's file name), or pick a popular one below.
+                </div>
+                <div class="icon-grid" id="wow-grid" style="margin-top:10px"></div>
+              </div>
+
+              <div class="tab-panel" data-panel="svg" hidden style="margin-top:12px">
+                <input type="search" id="icon-search" placeholder="Search icons — sword, fire, crown…">
+                <div class="icon-grid" id="icon-grid" style="margin-top:8px"></div>
+              </div>
+
+              <div class="tab-panel" data-panel="none" hidden style="margin-top:12px">
+                <div class="wow-help">Your character will show their initials on a colored tile.</div>
+              </div>
             </div>
           </div>
         </div>
@@ -154,26 +180,48 @@
       var editId = params.get("id");
 
       var accentInput = document.getElementById("accent");
+      var kindInput = document.getElementById("iconKind");
       var iconInput = document.getElementById("icon");
       var preview = document.getElementById("preview-avatar");
-      var sw = document.getElementById("swatches");
-      var grid = document.getElementById("icon-grid");
-      var search = document.getElementById("icon-search");
 
-      function current() {
+      var sw = document.getElementById("swatches");
+      var tabs = document.getElementById("icon-tabs");
+      var wowName = document.getElementById("wow-name");
+      var wowThumb = document.getElementById("wow-thumb");
+      var wowGrid = document.getElementById("wow-grid");
+      var svgSearch = document.getElementById("icon-search");
+      var svgGrid = document.getElementById("icon-grid");
+
+      function draft() {
         return {
           firstName: form.elements.firstName.value,
           lastName: form.elements.lastName.value,
           accent: accentInput.value,
+          iconKind: kindInput.value,
           icon: iconInput.value
         };
       }
       function refreshPreview() {
-        preview.setAttribute("style", ARPO.avatarStyle(current()));
-        preview.innerHTML = ARPO.avatarInner(current(), 40);
+        preview.setAttribute("style", ARPO.avatarStyle(draft()));
+        preview.innerHTML = ARPO.avatarInner(draft(), 42);
       }
 
-      // accent swatches
+      function select(kind, val) {
+        kindInput.value = kind || "";
+        iconInput.value = val || "";
+        highlightGrids();
+        refreshPreview();
+      }
+      function highlightGrids() {
+        [].forEach.call(wowGrid.children, function (b) {
+          b.classList.toggle("sel", kindInput.value === "wow" && b.dataset.name === iconInput.value);
+        });
+        [].forEach.call(svgGrid.children, function (b) {
+          b.classList.toggle("sel", kindInput.value === "svg" && b.dataset.key === iconInput.value);
+        });
+      }
+
+      // ---- accent ----
       function paintSwatches() {
         sw.innerHTML = "";
         ARPO.ACCENTS.forEach(function (color) {
@@ -182,51 +230,77 @@
           b.className = "swatch" + (color === accentInput.value ? " sel" : "");
           b.style.background = color; b.title = color;
           b.addEventListener("click", function () {
-            accentInput.value = color; paintSwatches(); paintGrid(search.value); refreshPreview();
+            accentInput.value = color; paintSwatches(); paintSvg(svgSearch.value); refreshPreview();
           });
           sw.appendChild(b);
         });
       }
 
-      // icon grid
-      function paintGrid(filter) {
+      // ---- tabs ----
+      function showTab(name) {
+        [].forEach.call(tabs.children, function (t) { t.classList.toggle("active", t.dataset.tab === name); });
+        [].forEach.call(document.querySelectorAll(".tab-panel"), function (p) { p.hidden = p.dataset.panel !== name; });
+      }
+      tabs.addEventListener("click", function (e) {
+        var t = e.target.closest(".tab"); if (!t) return;
+        showTab(t.dataset.tab);
+        if (t.dataset.tab === "none") select("", "");
+      });
+
+      // ---- WoW icons ----
+      function paintWowThumb() {
+        var n = wowName.value.trim();
+        if (!n) { wowThumb.textContent = "?"; return; }
+        wowThumb.innerHTML = '<img alt="" src="' + ARPO.wowIconUrl(n) +
+          '" onerror="this.parentNode.textContent=\'?\'">';
+      }
+      wowName.addEventListener("input", function () {
+        paintWowThumb();
+        var n = wowName.value.trim().toLowerCase();
+        if (n) select("wow", n); else if (kindInput.value === "wow") select("", "");
+      });
+      function paintWowGrid() {
+        wowGrid.innerHTML = "";
+        ARPO.WOW_ICONS.forEach(function (name) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "icon-opt"; b.dataset.name = name; b.title = name;
+          b.innerHTML = '<img alt="" loading="lazy" src="' + ARPO.wowIconUrl(name, "medium") +
+            '" onerror="this.closest(\'.icon-opt\').style.display=\'none\'">';
+          b.addEventListener("click", function () {
+            wowName.value = name; paintWowThumb(); showTab("wow"); select("wow", name);
+          });
+          wowGrid.appendChild(b);
+        });
+      }
+
+      // ---- Simple (SVG) icons ----
+      function paintSvg(filter) {
         filter = (filter || "").trim().toLowerCase();
-        grid.innerHTML = "";
-
-        var none = document.createElement("button");
-        none.type = "button";
-        none.className = "icon-opt none" + (iconInput.value ? "" : " sel");
-        none.title = "Use initials";
-        none.textContent = "Initials";
-        none.addEventListener("click", function () { iconInput.value = ""; paintGrid(search.value); refreshPreview(); });
-        if (!filter) grid.appendChild(none);
-
+        svgGrid.innerHTML = "";
         var matches = ARPO.ICONS.filter(function (i) {
           return !filter || i.key.indexOf(filter) !== -1 || i.label.indexOf(filter) !== -1;
         });
         matches.forEach(function (i) {
           var b = document.createElement("button");
-          b.type = "button";
-          b.className = "icon-opt" + (iconInput.value === i.key ? " sel" : "");
-          b.title = i.key;
+          b.type = "button"; b.className = "icon-opt"; b.dataset.key = i.key; b.title = i.key;
           b.style.color = accentInput.value;
           b.innerHTML = ARPO.iconSVG(i.key, { size: 24 });
-          b.addEventListener("click", function () { iconInput.value = i.key; paintGrid(search.value); refreshPreview(); });
-          grid.appendChild(b);
+          b.addEventListener("click", function () { select("svg", i.key); });
+          svgGrid.appendChild(b);
         });
-
         if (!matches.length) {
           var e = document.createElement("div");
           e.className = "icon-empty"; e.textContent = 'No icons match “' + filter + '”.';
-          grid.appendChild(e);
+          svgGrid.appendChild(e);
         }
+        highlightGrids();
       }
+      svgSearch.addEventListener("input", function () { paintSvg(svgSearch.value); });
 
-      search.addEventListener("input", function () { paintGrid(search.value); });
       form.elements.firstName.addEventListener("input", refreshPreview);
       form.elements.lastName.addEventListener("input", refreshPreview);
 
-      // edit mode: prefill
+      // ---- edit prefill ----
       if (editId) {
         var c = ARPO.get(editId);
         if (c) {
@@ -238,21 +312,31 @@
             if (el && el.type !== "hidden") el.value = c[k];
           });
           accentInput.value = c.accent || "#d4af6a";
+          // normalize icon kind (older characters stored an SVG key with no kind)
+          kindInput.value = c.iconKind || (c.icon ? "svg" : "");
           iconInput.value = c.icon || "";
         }
       }
 
+      // ---- init ----
       paintSwatches();
-      paintGrid("");
+      paintWowGrid();
+      paintSvg("");
+      if (kindInput.value === "wow") { wowName.value = iconInput.value; paintWowThumb(); showTab("wow"); }
+      else if (kindInput.value === "svg" && iconInput.value) { showTab("svg"); }
+      else if (!iconInput.value) { showTab("wow"); }
+      highlightGrids();
       refreshPreview();
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
         var data = {};
-        Array.prototype.forEach.call(form.elements, function (el) {
+        [].forEach.call(form.elements, function (el) {
           if (el.name) data[el.name] = typeof el.value === "string" ? el.value.trim() : el.value;
         });
         if (!data.firstName) { ARPO.toast("Please enter a first name."); form.elements.firstName.focus(); return; }
+        if (data.iconKind === "wow" && data.icon) data.icon = data.icon.toLowerCase();
+        if (!data.icon) data.iconKind = "";
         if (!data.id) delete data.id;
         ARPO.upsert(data);
         location.href = "manage.html";

@@ -132,11 +132,13 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing:
 .char-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
 .char-card .top { display: flex; gap: 14px; align-items: center; }
 .avatar {
-  width: 54px; height: 54px; border-radius: 12px; flex: 0 0 auto;
+  width: 54px; height: 54px; border-radius: 12px; flex: 0 0 auto; position: relative; overflow: hidden;
   display: grid; place-items: center; font-family: var(--font-display); font-size: 1.35rem; font-weight: 700;
   border: 1px solid var(--border-2);
 }
 .avatar svg { width: 60%; height: 60%; }
+.avatar .wow-ico { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.avatar .ico-fb { position: absolute; inset: 0; display: grid; place-items: center; }
 .char-card .names { min-width: 0; }
 .char-card .names .full { font-family: var(--font-display); font-size: 1.15rem; line-height: 1.2; }
 .char-card .names .title { color: var(--gold); font-size: .85rem; }
@@ -234,6 +236,26 @@ textarea { min-height: 92px; }
 .icon-opt svg { width: 24px; height: 24px; }
 .icon-opt.none { font-size: .68rem; color: var(--muted); letter-spacing: .02em; }
 .icon-empty { color: var(--faint); font-size: .85rem; padding: 8px 4px; }
+.icon-opt img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+
+/* source tabs */
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; }
+.tab {
+  border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600;
+  padding: 6px 14px; border-radius: 7px; cursor: pointer;
+}
+.tab.active { background: var(--panel-2); color: var(--text); box-shadow: var(--shadow-sm); }
+
+/* custom wow icon name entry */
+.wow-custom { display: flex; gap: 10px; align-items: center; }
+.wow-custom .thumb {
+  width: 46px; height: 46px; flex: 0 0 auto; border-radius: 10px; border: 1px solid var(--border-2);
+  background: var(--bg); overflow: hidden; display: grid; place-items: center; color: var(--faint); font-size: .7rem;
+}
+.wow-custom .thumb img { width: 100%; height: 100%; object-fit: cover; }
+.wow-custom input { flex: 1; }
+.wow-help { color: var(--faint); font-size: .78rem; }
+.wow-help a { color: var(--gold); }
 
 /* ---- Toast ------------------------------------------------------------- */
 .toast {
@@ -251,7 +273,7 @@ textarea { min-height: 92px; }
    Exportable character sheet (also used on-screen for previews)
    ========================================================================== */
 .sheet {
-  width: 720px; background: #14161f; color: #ece7db;
+  width: 720px; max-width: 100%; background: #14161f; color: #ece7db;
   border: 1px solid #2a3243; border-radius: 16px; overflow: hidden;
   font-family: var(--font-body);
 }
@@ -270,8 +292,18 @@ textarea { min-height: 92px; }
 .sheet p.text { white-space: pre-wrap; color: #cfd4e0; margin: 0 0 6px; }
 .sheet .foot { color: #6b7488; font-size: .75rem; padding: 14px 30px; border-top: 1px solid #2a3243; display: flex; justify-content: space-between; }
 
-/* offscreen render host for exports */
-.export-host { position: fixed; left: -10000px; top: 0; }
+/* offscreen render host for exports (fixed width so exports don't shrink) */
+.export-host { position: fixed; left: -10000px; top: 0; width: 760px; }
+
+/* ---- Character profile page -------------------------------------------- */
+.profile-wrap { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.profile-toolbar {
+  width: 720px; max-width: 100%; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.profile-toolbar .spacer { flex: 1; }
+.profile-missing { text-align: center; padding: 70px 20px; color: var(--muted); }
+.sheet .banner .avatar { width: 72px; height: 72px; font-size: 1.9rem; border-radius: 14px; }
+.sheet .banner .avatar svg { width: 60%; height: 60%; }
 
 /* ---- Responsive -------------------------------------------------------- */
 @media (max-width: 640px) {

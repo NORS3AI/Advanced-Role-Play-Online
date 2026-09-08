@@ -65,6 +65,41 @@
   ARPO.ICON_MAP = {};
   ARPO.ICONS.forEach(function (i) { ARPO.ICON_MAP[i.key] = i; });
 
+  // ---- Wowhead (authentic WoW) icons -------------------------------------
+  // Served from Wowhead's public icon CDN. Any WoW icon works by name; the
+  // grid below is a curated starter set. Names are the in-game icon file name.
+  ARPO.WOW_ICON_BASE = "https://wow.zamimg.com/images/wow/icons/";
+  ARPO.wowIconUrl = function (name, size) {
+    return ARPO.WOW_ICON_BASE + (size || "large") + "/" +
+      String(name || "").trim().toLowerCase() + ".jpg";
+  };
+  ARPO.WOW_ICONS = [
+    // Weapons & combat
+    "inv_sword_04", "inv_sword_27", "inv_sword_39", "inv_axe_02", "inv_mace_01",
+    "inv_hammer_16", "inv_staff_13", "inv_weapon_bow_07", "inv_weapon_rifle_01",
+    "inv_wand_07", "inv_shield_06", "inv_shield_04", "inv_spear_04",
+    "ability_stealth", "ability_dualwield", "ability_warrior_savageblow", "ability_warrior_charge",
+    // Magic
+    "spell_fire_fireball02", "spell_fire_flamebolt", "spell_frost_frostbolt02", "spell_frost_frostnova",
+    "spell_nature_lightning", "spell_nature_healingtouch", "spell_nature_starfall",
+    "spell_shadow_shadowbolt", "spell_shadow_deathcoil", "spell_shadow_raisedead",
+    "spell_holy_holybolt", "spell_holy_powerwordshield", "spell_holy_flashheal",
+    "spell_arcane_blast", "spell_arcane_arcanetorrent",
+    // Items & theme
+    "inv_misc_book_09", "inv_misc_book_11", "inv_scroll_03", "inv_potion_51", "inv_potion_54",
+    "inv_misc_gem_diamond_02", "inv_misc_gem_ruby_02", "inv_misc_head_dragon_01",
+    "ability_mount_ridinghorse", "inv_banner_02", "inv_misc_note_01", "inv_drink_05",
+    "inv_misc_key_03", "inv_jewelry_ring_03",
+    // Race portraits
+    "achievement_character_human_male", "achievement_character_human_female",
+    "achievement_character_dwarf_male", "achievement_character_nightelf_female",
+    "achievement_character_gnome_male", "achievement_character_draenei_male",
+    "achievement_character_orc_male", "achievement_character_undead_male",
+    "achievement_character_tauren_male", "achievement_character_troll_male",
+    "achievement_character_bloodelf_female", "achievement_character_pandaren_male",
+    "achievement_character_worgen_male", "achievement_character_goblin_male"
+  ];
+
   ARPO.iconSVG = function (key, opts) {
     opts = opts || {};
     var ic = ARPO.ICON_MAP[key];

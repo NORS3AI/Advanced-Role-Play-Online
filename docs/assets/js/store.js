@@ -89,7 +89,16 @@
     var a = ARPO.accent(c);
     return "background:#12151f;border:1px solid " + a + "66;color:" + a;
   };
-  ARPO.avatarInner = function (c, size) {
+  ARPO.avatarInner = function (c, size, forExport) {
+    if (c && c.iconKind === "wow" && c.icon && ARPO.wowIconUrl) {
+      var url = ARPO.wowIconUrl(c.icon);
+      var co = forExport ? ' crossorigin="anonymous"' : "";
+      // Image covers the tile; if it fails to load, it removes itself and the
+      // initials underneath show through.
+      return '<img class="wow-ico" alt=""' + co + ' src="' + url +
+        '" onerror="this.remove()"><span class="ico-fb">' +
+        ARPO.escapeHtml(ARPO.initials(c)) + "</span>";
+    }
     if (c && c.icon && ARPO.iconSVG) {
       var svg = ARPO.iconSVG(c.icon, { size: size || 28 });
       if (svg) return svg;
