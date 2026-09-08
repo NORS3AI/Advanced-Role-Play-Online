@@ -26,7 +26,7 @@
   }
 
   // Build the character-sheet DOM node (styled by .sheet in styles.css).
-  ARPO.buildSheet = function (c) {
+  ARPO.buildSheet = function (c, forExport) {
     var accent = c.accent || "#d4af6a";
     var status = c.rpStatus === "ic"
       ? '<span class="pill ic"><span class="dot"></span>In Character</span>'
@@ -37,7 +37,7 @@
     el.innerHTML =
       '<div class="banner">' +
         '<div class="avatar" style="' + ARPO.avatarStyle(c) + '">' +
-          ARPO.avatarInner(c, 40) + "</div>" +
+          ARPO.avatarInner(c, 40, forExport) + "</div>" +
         "<div>" +
           '<div class="full">' + esc(ARPO.fullName(c)) + "</div>" +
           (c.fullTitle ? '<div class="title">' + esc(c.fullTitle) + "</div>" : "") +
@@ -61,7 +61,7 @@
   function renderOffscreen(c) {
     var host = document.createElement("div");
     host.className = "export-host";
-    var sheet = ARPO.buildSheet(c);
+    var sheet = ARPO.buildSheet(c, true);
     host.appendChild(sheet);
     document.body.appendChild(host);
     return { host: host, sheet: sheet };
