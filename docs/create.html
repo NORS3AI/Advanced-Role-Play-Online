@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create a Character · ARPO</title>
+  <link rel="icon" href="assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container bar">
+      <a class="brand" href="index.html">
+        <img src="assets/img/logo.svg" alt="">
+        <span class="name"><b>ARPO</b></span>
+      </a>
+      <nav>
+        <a class="btn btn-sm btn-ghost" href="manage.html">Manage Characters</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container page">
+    <div class="page-head">
+      <div>
+        <h1 id="page-title">Create a Character</h1>
+        <p class="sub">Only a first name is required — fill in as much or as little as you like.</p>
+      </div>
+    </div>
+
+    <form class="character-form" id="char-form" autocomplete="off">
+      <input type="hidden" id="id" name="id">
+      <input type="hidden" id="accent" name="accent" value="#d4af6a">
+
+      <fieldset>
+        <legend>Identity</legend>
+        <div class="fields">
+          <div class="field">
+            <label for="title">Title / Prefix</label>
+            <input id="title" name="title" placeholder="Lady, Captain, Ser…">
+          </div>
+          <div class="field">
+            <label for="firstName">First name <span class="req">*</span></label>
+            <input id="firstName" name="firstName" required placeholder="Anduin">
+          </div>
+          <div class="field">
+            <label for="lastName">Last name</label>
+            <input id="lastName" name="lastName" placeholder="Wrynn">
+          </div>
+          <div class="field">
+            <label for="nickname">Nickname / RP name</label>
+            <input id="nickname" name="nickname" placeholder="The Lightbringer">
+          </div>
+          <div class="field full">
+            <label for="fullTitle">Full title</label>
+            <input id="fullTitle" name="fullTitle" placeholder="High King of the Alliance">
+          </div>
+          <div class="field full">
+            <label>Accent color</label>
+            <div class="swatches" id="swatches"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Characteristics</legend>
+        <div class="fields">
+          <div class="field"><label for="race">Race</label><input id="race" name="race" placeholder="Human"></div>
+          <div class="field"><label for="charClass">Class</label><input id="charClass" name="charClass" placeholder="Paladin"></div>
+          <div class="field"><label for="age">Age</label><input id="age" name="age" placeholder="21"></div>
+          <div class="field"><label for="pronouns">Pronouns</label><input id="pronouns" name="pronouns" placeholder="he/him"></div>
+          <div class="field"><label for="height">Height</label><input id="height" name="height" placeholder="6'0&quot;"></div>
+          <div class="field"><label for="weight">Weight / Build</label><input id="weight" name="weight" placeholder="Athletic"></div>
+          <div class="field"><label for="eyeColor">Eye color</label><input id="eyeColor" name="eyeColor" placeholder="Blue"></div>
+          <div class="field"><label for="alignment">Alignment</label><input id="alignment" name="alignment" placeholder="Lawful Good"></div>
+          <div class="field"><label for="birthplace">Birthplace</label><input id="birthplace" name="birthplace" placeholder="Stormwind City"></div>
+          <div class="field"><label for="residence">Residence</label><input id="residence" name="residence" placeholder="Stormwind Keep"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>About</legend>
+        <div class="fields">
+          <div class="field full">
+            <label for="quote">Quote / Motto</label>
+            <input id="quote" name="quote" placeholder="For the Alliance!">
+          </div>
+          <div class="field full">
+            <label for="physical">Physical description</label>
+            <textarea id="physical" name="physical" placeholder="Appearance, notable features, how they carry themselves…"></textarea>
+          </div>
+          <div class="field full">
+            <label for="personality">Personality</label>
+            <textarea id="personality" name="personality" placeholder="Temperament, quirks, values…"></textarea>
+          </div>
+          <div class="field full">
+            <label for="history">History / Backstory</label>
+            <textarea id="history" name="history" placeholder="Where they come from and what shaped them…"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Currently</legend>
+        <div class="fields">
+          <div class="field">
+            <label for="rpStatus">Roleplay status</label>
+            <select id="rpStatus" name="rpStatus">
+              <option value="ic">In Character</option>
+              <option value="ooc">Out of Character</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="currently">What are they up to right now?</label>
+            <textarea id="currently" name="currently" placeholder="Current whereabouts, mood, ongoing story…"></textarea>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="form-actions">
+        <a class="btn btn-ghost" href="manage.html">Cancel</a>
+        <button class="btn btn-primary" type="submit" id="save-btn">Save Character</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="assets/js/store.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById("char-form");
+      var params = new URLSearchParams(location.search);
+      var editId = params.get("id");
+
+      // accent swatches
+      var sw = document.getElementById("swatches");
+      var accentInput = document.getElementById("accent");
+      function paintSwatches(sel) {
+        sw.innerHTML = "";
+        ARPO.ACCENTS.forEach(function (color) {
+          var b = document.createElement("button");
+          b.type = "button"; b.className = "swatch" + (color === sel ? " sel" : "");
+          b.style.background = color; b.title = color;
+          b.addEventListener("click", function () { accentInput.value = color; paintSwatches(color); });
+          sw.appendChild(b);
+        });
+      }
+      paintSwatches(accentInput.value);
+
+      // edit mode: prefill
+      if (editId) {
+        var c = ARPO.get(editId);
+        if (c) {
+          document.getElementById("page-title").textContent = "Edit Character";
+          document.title = "Edit Character · ARPO";
+          document.getElementById("save-btn").textContent = "Save Changes";
+          Object.keys(c).forEach(function (k) {
+            var el = form.elements[k];
+            if (el) el.value = c[k];
+          });
+          accentInput.value = c.accent || "#d4af6a";
+          paintSwatches(accentInput.value);
+        }
+      }
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var data = {};
+        Array.prototype.forEach.call(form.elements, function (el) {
+          if (el.name) data[el.name] = el.value.trim ? el.value.trim() : el.value;
+        });
+        if (!data.firstName) { ARPO.toast("Please enter a first name."); return; }
+        if (!data.id) delete data.id;
+        ARPO.upsert(data);
+        location.href = "manage.html";
+      });
+    })();
+  </script>
+</body>
+</html>
