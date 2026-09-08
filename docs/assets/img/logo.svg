@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img" aria-label="ARPO emblem">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f2d692"/>
+      <stop offset="0.5" stop-color="#d4af6a"/>
+      <stop offset="1" stop-color="#a97b32"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3346"/>
+      <stop offset="1" stop-color="#161b28"/>
+    </linearGradient>
+  </defs>
+  <!-- shield -->
+  <path d="M60 6 L104 20 V58 C104 86 84 106 60 116 C36 106 16 86 16 58 V20 Z"
+        fill="url(#steel)" stroke="url(#gold)" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M60 16 L95 27 V58 C95 81 79 98 60 106 C41 98 25 81 25 58 V27 Z"
+        fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.6"/>
+  <!-- monogram A -->
+  <path d="M60 34 L78 82 H69 L65.2 71 H54.8 L51 82 H42 Z M57.4 63 H62.6 L60 55 Z"
+        fill="url(#gold)"/>
+  <!-- crossed strokes suggesting quill / sword -->
+  <circle cx="60" cy="26" r="3.2" fill="url(#gold)"/>
+</svg>

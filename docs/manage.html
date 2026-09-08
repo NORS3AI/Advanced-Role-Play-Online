@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manage Characters · ARPO</title>
+  <link rel="icon" href="assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container bar">
+      <a class="brand" href="index.html">
+        <img src="assets/img/logo.svg" alt="">
+        <span class="name"><b>ARPO</b></span>
+      </a>
+      <nav>
+        <a class="btn btn-sm btn-primary" href="create.html">✦ Create a Character</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container page">
+    <div class="page-head">
+      <div>
+        <h1>Manage Characters</h1>
+        <p class="sub" id="count-sub">Your saved characters.</p>
+      </div>
+    </div>
+    <div id="content"></div>
+  </main>
+
+  <!-- Export libraries (load only where exports happen) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/export.js"></script>
+  <script>
+    (function () {
+      var content = document.getElementById("content");
+      var sub = document.getElementById("count-sub");
+      var esc = ARPO.escapeHtml;
+
+      function render() {
+        var list = ARPO.loadAll().slice().sort(function (a, b) {
+          return (b.updatedAt || "").localeCompare(a.updatedAt || "");
+        });
+
+        if (!list.length) {
+          sub.textContent = "Your saved characters.";
+          content.innerHTML =
+            '<div class="empty">' +
+              '<img src="assets/img/logo.svg" alt="">' +
+              "<h2>No characters yet</h2>" +
+              "<p>Create your first character to get started.</p>" +
+              '<a class="btn btn-primary btn-lg" href="create.html">✦ Create a Character</a>' +
+            "</div>";
+          return;
+        }
+
+        sub.textContent = list.length + (list.length === 1 ? " character" : " characters") + " saved.";
+        var grid = document.createElement("div");
+        grid.className = "grid";
+        list.forEach(function (c) { grid.appendChild(card(c)); });
+        content.innerHTML = "";
+        content.appendChild(grid);
+      }
+
+      function card(c) {
+        var el = document.createElement("div");
+        el.className = "char-card";
+        var accent = c.accent || "#d4af6a";
+        var status = c.rpStatus === "ic"
+          ? '<span class="pill ic"><span class="dot"></span>In Character</span>'
+          : '<span class="pill ooc"><span class="dot"></span>Out of Character</span>';
+        var rc = ARPO.raceClass(c);
+        var blurb = c.personality || c.physical || c.history || c.currently || "";
+
+        el.innerHTML =
+          '<div class="kebab-wrap">' +
+            '<button class="kebab" aria-label="Actions" title="Actions">⋯</button>' +
+            '<div class="menu" role="menu">' +
+              '<button data-act="edit"><span class="ico">✎</span> Edit</button>' +
+              '<div class="label">Save as</div>' +
+              '<button data-act="png"><span class="ico">🖼</span> PNG image</button>' +
+              '<button data-act="pdf"><span class="ico">📄</span> PDF</button>' +
+              '<button data-act="word"><span class="ico">📝</span> Word document</button>' +
+              '<div class="sep"></div>' +
+              '<button class="danger" data-act="delete"><span class="ico">🗑</span> Delete</button>' +
+            "</div>" +
+          "</div>" +
+          '<div class="top">' +
+            '<div class="avatar" style="background:linear-gradient(180deg,' + esc(accent) + ',' + esc(accent) + 'bb)">' +
+              esc(ARPO.initials(c)) + "</div>" +
+            '<div class="names">' +
+              '<div class="full">' + esc(ARPO.fullName(c)) + "</div>" +
+              (c.fullTitle ? '<div class="title">' + esc(c.fullTitle) + "</div>" : "") +
+            "</div>" +
+          "</div>" +
+          (rc ? '<div class="meta"><span>' + esc(rc) + "</span></div>" : "") +
+          (blurb ? '<div class="blurb">' + esc(blurb) + "</div>" : "") +
+          '<div class="meta" style="margin-top:12px">' + status + "</div>";
+
+        // kebab open/close
+        var wrap = el.querySelector(".kebab-wrap");
+        var menu = el.querySelector(".menu");
+        el.querySelector(".kebab").addEventListener("click", function (e) {
+          e.stopPropagation();
+          var isOpen = menu.classList.contains("open");
+          closeAllMenus();
+          if (!isOpen) menu.classList.add("open");
+        });
+
+        // actions
+        menu.addEventListener("click", function (e) {
+          var btn = e.target.closest("button[data-act]");
+          if (!btn) return;
+          e.stopPropagation();
+          menu.classList.remove("open");
+          var act = btn.getAttribute("data-act");
+          if (act === "edit") { location.href = "create.html?id=" + encodeURIComponent(c.id); }
+          else if (act === "png") { ARPO.exportPNG(c); }
+          else if (act === "pdf") { ARPO.exportPDF(c); }
+          else if (act === "word") { ARPO.exportWord(c); }
+          else if (act === "delete") {
+            if (confirm("Delete “" + ARPO.fullName(c) + "”? This cannot be undone.")) {
+              ARPO.remove(c.id); ARPO.toast("Character deleted"); render();
+            }
+          }
+        });
+
+        return el;
+      }
+
+      function closeAllMenus() {
+        Array.prototype.forEach.call(document.querySelectorAll(".menu.open"), function (m) {
+          m.classList.remove("open");
+        });
+      }
+      document.addEventListener("click", closeAllMenus);
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeAllMenus(); });
+
+      render();
+    })();
+  </script>
+</body>
+</html>
