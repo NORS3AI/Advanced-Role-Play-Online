@@ -318,6 +318,7 @@
           document.getElementById("page-title").textContent = "Edit Character";
           document.title = "Edit Character · ARPO";
           document.getElementById("save-btn").textContent = "Save Changes";
+          form.elements.id.value = c.id;   // keep editing the SAME character
           Object.keys(c).forEach(function (k) {
             var el = form.elements[k];
             if (el && el.type !== "hidden") el.value = c[k];

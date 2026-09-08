@@ -16,6 +16,7 @@
     <img class="logo" src="assets/img/logo.svg" alt="ARPO emblem">
     <div class="acronym">A R P O</div>
     <h1>Advanced Role&nbsp;Play Online</h1>
+    <p class="welcome">Hello Riel! 👋</p>
     <p class="tagline">Build, manage, and share your roleplay characters — TRP3-style profiles, made easy.</p>
     <div class="cta">
       <a class="btn btn-primary btn-lg" href="create.html">✦ Create a Character</a>
@@ -24,60 +25,8 @@
     <p class="hint">Your characters are saved privately in this browser.</p>
   </main>
 
-  <section class="yours container">
-    <h2>Your Characters</h2>
-    <p class="greeting">Hello Riel! 👋</p>
-    <div id="your-list"></div>
-  </section>
-
   <footer class="site-footer">
     <div class="container">Advanced Role Play Online · <a href="https://github.com/NORS3AI/Advanced-Role-Play-Online">GitHub</a></div>
   </footer>
-
-  <script src="assets/js/icons.js"></script>
-  <script src="assets/js/store.js"></script>
-  <script>
-    (function () {
-      var el = document.getElementById("your-list");
-      var esc = ARPO.escapeHtml;
-      var list = ARPO.loadAll().slice().sort(function (a, b) {
-        return (b.updatedAt || "").localeCompare(a.updatedAt || "");
-      });
-
-      if (!list.length) {
-        el.innerHTML =
-          '<div class="empty">' +
-            '<img src="assets/img/logo.svg" alt="">' +
-            "<h2>No characters yet</h2>" +
-            "<p>Create your first character to see them here.</p>" +
-            '<a class="btn btn-primary btn-lg" href="create.html">✦ Create a Character</a>' +
-          "</div>";
-        return;
-      }
-
-      var grid = document.createElement("div");
-      grid.className = "mini-grid";
-      list.forEach(function (c) {
-        var a = document.createElement("a");
-        a.className = "mini-card";
-        a.href = "character.html?id=" + encodeURIComponent(c.id);
-        var rc = ARPO.raceClass(c) || (c.fullTitle || "");
-        a.innerHTML =
-          '<div class="avatar" style="' + ARPO.avatarStyle(c) + '">' + ARPO.avatarInner(c, 24) + "</div>" +
-          '<div class="mc-text">' +
-            '<div class="mc-name">' + esc(ARPO.fullName(c)) + "</div>" +
-            (rc ? '<div class="mc-sub">' + esc(rc) + "</div>" : "") +
-          "</div>";
-        grid.appendChild(a);
-      });
-      el.appendChild(grid);
-
-      var more = document.createElement("a");
-      more.className = "more";
-      more.href = "manage.html";
-      more.textContent = "Manage all characters →";
-      el.appendChild(more);
-    })();
-  </script>
 </body>
 </html>
