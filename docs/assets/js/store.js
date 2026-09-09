@@ -64,6 +64,24 @@
     ARPO.saveAll(ARPO.loadAll().filter(function (c) { return c.id !== id; }));
   };
 
+  // ---- settings ----------------------------------------------------------
+  ARPO.SETTINGS_KEY = "arpo:settings:v1";
+  ARPO.loadSettings = function () {
+    var s = {};
+    try { s = JSON.parse(localStorage.getItem(ARPO.SETTINGS_KEY)) || {}; } catch (e) { s = {}; }
+    return {
+      displayName: s.displayName != null ? s.displayName : "Rielle",
+      hideGreeting: !!s.hideGreeting
+    };
+  };
+  ARPO.saveSettings = function (s) {
+    try { localStorage.setItem(ARPO.SETTINGS_KEY, JSON.stringify(s)); return true; } catch (e) { return false; }
+  };
+  ARPO.greetingName = function () {
+    var n = (ARPO.loadSettings().displayName || "").trim();
+    return n || "Rielle";
+  };
+
   // ---- display helpers ---------------------------------------------------
   ARPO.fullName = function (c) {
     var n = [c.title, c.firstName, c.lastName].filter(Boolean).join(" ").trim();

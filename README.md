@@ -45,6 +45,8 @@ generic so it can grow to other games, tabletop settings, and original worlds.
 - **Share links** — share a character with a link. The character is encoded
   into the URL itself (no account needed); opening the link shows a read-only
   profile with a **Save a copy** option.
+- **Settings** (⚙, top-right on every page) — set what the home page calls you,
+  or hide the greeting entirely. Saved privately in your browser.
 
 ## How it works
 

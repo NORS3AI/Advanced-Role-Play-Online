@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings · ARPO</title>
+  <link rel="icon" href="assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container bar">
+      <a class="brand" href="index.html">
+        <img src="assets/img/logo.svg" alt="">
+        <span class="name"><b>ARPO</b></span>
+      </a>
+      <nav>
+        <a class="btn btn-sm btn-ghost" href="manage.html">Manage Characters</a>
+        <a class="btn btn-sm btn-primary" href="create.html">✦ Create</a>
+        <a class="btn btn-sm btn-ghost is-active" href="settings.html" title="Settings" aria-label="Settings">⚙</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container page">
+    <div class="page-head">
+      <div>
+        <h1>Settings</h1>
+        <p class="sub">Preferences are saved privately in this browser.</p>
+      </div>
+    </div>
+
+    <form class="character-form" id="settings-form" autocomplete="off" style="max-width:640px">
+      <fieldset>
+        <legend>Personalization</legend>
+        <div class="fields">
+          <div class="field full">
+            <label for="displayName">What should we call you?</label>
+            <input id="displayName" name="displayName" placeholder="Rielle" maxlength="40">
+            <span class="help">Used for your greeting on the home page (e.g. “Hello Rielle”).</span>
+          </div>
+          <div class="field full">
+            <label class="check-row">
+              <input type="checkbox" id="hideGreeting" name="hideGreeting">
+              <span>Hide Inspirational OC</span>
+            </label>
+            <span class="help">Hides the greeting on the home page.</span>
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="form-actions">
+        <a class="btn btn-ghost" href="index.html">Back to home</a>
+        <button class="btn btn-primary" type="submit">Save Settings</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="assets/js/store.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById("settings-form");
+      var name = document.getElementById("displayName");
+      var hide = document.getElementById("hideGreeting");
+
+      var s = ARPO.loadSettings();
+      name.value = s.displayName || "";
+      hide.checked = !!s.hideGreeting;
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        ARPO.saveSettings({
+          displayName: name.value.trim() || "Rielle",
+          hideGreeting: hide.checked
+        });
+        ARPO.toast("Settings saved");
+      });
+    })();
+  </script>
+</body>
+</html>
