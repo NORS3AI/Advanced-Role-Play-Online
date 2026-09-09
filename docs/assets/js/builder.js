@@ -71,11 +71,11 @@
         '<input class="cs-f" data-k="label" placeholder="Label (optional)" value="' + esc(d.label || "") + '">' +
         '<div class="cs-icon-edit">' +
           '<div class="cs-icon-prev" data-prev></div>' +
-          '<input class="cs-f" data-k="icon" placeholder="WoW icon name — e.g. spell_holy_holybolt" value="' + esc(d.icon || "") + '">' +
+          '<input type="hidden" class="cs-f" data-k="icon" value="' + esc(d.icon || "") + '">' +
           '<input type="hidden" class="cs-f" data-k="iconKind" value="' + esc(d.iconKind || "wow") + '">' +
-          '<button type="button" class="btn btn-sm cs-icon-browse">▾ Pick</button>' +
-        "</div>" +
-        '<div class="cs-icon-grid" hidden></div>';
+          '<button type="button" class="btn btn-sm cs-icon-pick">🖼 Icon</button>' +
+          '<span class="cs-icon-name">' + (d.icon ? esc(d.icon) : "None") + "</span>" +
+        "</div>";
     } else if (type === "image") {
       body =
         '<input class="cs-f" data-k="label" placeholder="Caption (optional)" value="' + esc(d.label || "") + '">' +
@@ -97,21 +97,21 @@
     prev.innerHTML = name ? (ARPO.inlineIcon(kind, name, 26) || "?") : "?";
   }
 
-  function fillIconGrid(grid) {
-    if (grid.dataset.filled) return;
-    grid.dataset.filled = "1";
-    var html = '<div class="cs-ig-label">WoW icons</div><div class="cs-ig-row">';
-    ARPO.WOW_ICONS.forEach(function (n) {
-      html += '<button type="button" class="cs-ig" data-kind="wow" data-name="' + esc(n) + '" title="' + esc(n) + '">' +
-        '<img alt="" loading="lazy" src="' + ARPO.wowIconUrl(n, "medium") + '" onerror="this.closest(\'.cs-ig\').style.display=\'none\'"></button>';
+  // Set a row's icon (from the modal picker) and refresh its preview/label.
+  function applyPick(row, kind, name) {
+    row.querySelector('[data-k="icon"]').value = name || "";
+    row.querySelector('[data-k="iconKind"]').value = kind || "wow";
+    var nm = row.querySelector(".cs-icon-name");
+    if (nm) nm.textContent = name || "None";
+    updateIconPreview(row);
+  }
+  function openPickerFor(row) {
+    if (!ARPO.openIconPicker) return;
+    ARPO.openIconPicker({
+      kind: row.querySelector('[data-k="iconKind"]').value,
+      value: row.querySelector('[data-k="icon"]').value,
+      onPick: function (kind, name) { applyPick(row, kind, name); }
     });
-    html += '</div><div class="cs-ig-label">Simple</div><div class="cs-ig-row">';
-    ARPO.ICONS.forEach(function (i) {
-      html += '<button type="button" class="cs-ig" data-kind="svg" data-name="' + esc(i.key) + '" title="' + esc(i.key) + '">' +
-        ARPO.iconSVG(i.key, { size: 22 }) + "</button>";
-    });
-    html += "</div>";
-    grid.innerHTML = html;
   }
 
   function makeSection(d) {
@@ -166,22 +166,8 @@
         else if (a === "down" && sec.nextElementSibling) sec.parentNode.insertBefore(sec.nextElementSibling, sec);
         return;
       }
-      var browse = e.target.closest(".cs-icon-browse");
-      if (browse) {
-        var grid = browse.closest(".cs-item").querySelector(".cs-icon-grid");
-        fillIconGrid(grid);
-        grid.hidden = !grid.hidden;
-        return;
-      }
-      var pick = e.target.closest(".cs-ig");
-      if (pick) {
-        var row = pick.closest(".cs-item");
-        row.querySelector('[data-k="icon"]').value = pick.dataset.name;
-        row.querySelector('[data-k="iconKind"]').value = pick.dataset.kind;
-        row.querySelector(".cs-icon-grid").hidden = true;
-        updateIconPreview(row);
-        return;
-      }
+      var pk = e.target.closest(".cs-icon-pick");
+      if (pk) { openPickerFor(pk.closest(".cs-item")); return; }
     });
 
     // live input updates
@@ -196,11 +182,6 @@
         if (min !== "") range.min = min;
         if (max !== "") range.max = max;
         edit.querySelector(".cs-val").textContent = range.value;
-      } else if (f.dataset.k === "icon") {
-        var row = f.closest(".cs-item");
-        // typing a name assumes a WoW icon unless it matches a bundled key
-        row.querySelector('[data-k="iconKind"]').value = ARPO.ICON_MAP[f.value.trim()] ? "svg" : "wow";
-        updateIconPreview(row);
       } else if (f.closest(".cs-item") && f.closest(".cs-item").dataset.type === "image" && f.dataset.k === "url") {
         var prev = f.closest(".cs-item").querySelector(".cs-img-prev");
         if (f.value.trim()) { prev.hidden = false; prev.innerHTML = '<img alt="" src="' + esc(f.value.trim()) + '" onerror="this.style.display=\'none\'">'; }
@@ -250,15 +231,14 @@
     var row = document.createElement("div");
     row.className = "glance-row";
     row.innerHTML =
-      '<div class="g-icon">' +
+      '<div class="g-icon cs-icon-edit">' +
         '<div class="cs-icon-prev" data-prev></div>' +
-        '<input class="g-f g-name" data-k="icon" placeholder="Icon name (WoW)" value="' + esc(d.icon || "") + '">' +
+        '<input type="hidden" class="g-f" data-k="icon" value="' + esc(d.icon || "") + '">' +
         '<input type="hidden" class="g-f" data-k="iconKind" value="' + esc(d.iconKind || "wow") + '">' +
-        '<button type="button" class="btn btn-sm cs-icon-browse">▾ Pick</button>' +
+        '<button type="button" class="btn btn-sm cs-icon-pick">🖼 Icon</button>' +
       "</div>" +
       '<input class="g-f g-text" data-k="text" placeholder="What they\'d notice — e.g. A jagged scar across one eye" value="' + esc(d.text || "") + '">' +
-      '<button type="button" class="cs-mini danger" data-g="del" title="Remove">✕</button>' +
-      '<div class="cs-icon-grid" hidden></div>';
+      '<button type="button" class="cs-mini danger" data-g="del" title="Remove">✕</button>';
     updateIconPreview(row);
     return row;
   }
@@ -279,26 +259,8 @@
     container.addEventListener("click", function (e) {
       var del = e.target.closest('[data-g="del"]');
       if (del) { del.closest(".glance-row").remove(); syncAdd(); return; }
-      var browse = e.target.closest(".cs-icon-browse");
-      if (browse) {
-        var grid = browse.closest(".glance-row").querySelector(".cs-icon-grid");
-        fillIconGrid(grid); grid.hidden = !grid.hidden; return;
-      }
-      var pick = e.target.closest(".cs-ig");
-      if (pick) {
-        var row = pick.closest(".glance-row");
-        row.querySelector('[data-k="icon"]').value = pick.dataset.name;
-        row.querySelector('[data-k="iconKind"]').value = pick.dataset.kind;
-        row.querySelector(".cs-icon-grid").hidden = true;
-        updateIconPreview(row);
-      }
-    });
-    container.addEventListener("input", function (e) {
-      if (e.target.dataset.k === "icon") {
-        var row = e.target.closest(".glance-row");
-        row.querySelector('[data-k="iconKind"]').value = ARPO.ICON_MAP[e.target.value.trim()] ? "svg" : "wow";
-        updateIconPreview(row);
-      }
+      var pk = e.target.closest(".cs-icon-pick");
+      if (pk) { openPickerFor(pk.closest(".glance-row")); return; }
     });
 
     function serialize() {
