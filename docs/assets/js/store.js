@@ -111,11 +111,11 @@
     if (c && c.iconKind === "wow" && c.icon && ARPO.wowIconUrl) {
       var url = ARPO.wowIconUrl(c.icon);
       var co = forExport ? ' crossorigin="anonymous"' : "";
-      // Image covers the tile; if it fails to load, it removes itself and the
-      // initials underneath show through.
-      return '<img class="wow-ico" alt=""' + co + ' src="' + url +
-        '" onerror="this.remove()"><span class="ico-fb">' +
-        ARPO.escapeHtml(ARPO.initials(c)) + "</span>";
+      // Initials sit UNDERNEATH; the image paints on top and covers them.
+      // If the image fails to load it removes itself and the initials show.
+      return '<span class="ico-fb">' + ARPO.escapeHtml(ARPO.initials(c)) +
+        '</span><img class="wow-ico" alt=""' + co + ' src="' + url +
+        '" onerror="this.remove()">';
     }
     if (c && c.icon && ARPO.iconSVG) {
       var svg = ARPO.iconSVG(c.icon, { size: size || 28 });
