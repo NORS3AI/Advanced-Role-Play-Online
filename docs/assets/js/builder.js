@@ -18,11 +18,10 @@
   ];
   var TYPE_LABEL = {}; TYPES.forEach(function (t) { TYPE_LABEL[t.v] = t.label; });
 
-  function head(moveKey) {
+  function head() {
     return '<div class="cs-item-head">' +
+      ARPO.dragHandle("cs-item-handle") +
       '<span class="cs-type"></span><span class="spacer"></span>' +
-      '<button type="button" class="cs-mini" data-mv="up" title="Move up">▲</button>' +
-      '<button type="button" class="cs-mini" data-mv="down" title="Move down">▼</button>' +
       '<button type="button" class="cs-mini danger" data-mv="del" title="Remove">✕</button>' +
       "</div>";
   }
@@ -120,9 +119,8 @@
     sec.className = "cs-section";
     sec.innerHTML =
       '<div class="cs-section-head">' +
+        ARPO.dragHandle("cs-sec-handle") +
         '<input class="cs-title-input" placeholder="Section title — e.g. Abilities" value="' + esc(d.title || "") + '">' +
-        '<button type="button" class="cs-mini" data-sv="up" title="Move section up">▲</button>' +
-        '<button type="button" class="cs-mini" data-sv="down" title="Move section down">▼</button>' +
         '<button type="button" class="cs-mini danger" data-sv="del" title="Remove section">✕</button>' +
       "</div>" +
       '<div class="cs-items"></div>' +
@@ -131,6 +129,7 @@
       "</select></div>";
     var wrap = sec.querySelector(".cs-items");
     (d.items || []).forEach(function (it) { wrap.appendChild(makeItem(it.type, it)); });
+    if (ARPO.sortable) ARPO.sortable(wrap, { item: ".cs-item", handle: ".cs-item-handle" });
     return sec;
   }
 
@@ -138,6 +137,7 @@
     function addSection(d) { container.appendChild(makeSection(d)); }
 
     if (addButton) addButton.addEventListener("click", function () { addSection(); });
+    if (ARPO.sortable) ARPO.sortable(container, { item: ".cs-section", handle: ".cs-sec-handle" });
 
     // add element
     container.addEventListener("change", function (e) {
@@ -148,24 +148,12 @@
       }
     });
 
-    // clicks: move / delete / icon browse / icon pick
+    // clicks: delete item / delete section / icon pick
     container.addEventListener("click", function (e) {
-      var mv = e.target.closest("[data-mv]");
-      if (mv) {
-        var item = mv.closest(".cs-item"), act = mv.dataset.mv;
-        if (act === "del") item.remove();
-        else if (act === "up" && item.previousElementSibling) item.parentNode.insertBefore(item, item.previousElementSibling);
-        else if (act === "down" && item.nextElementSibling) item.parentNode.insertBefore(item.nextElementSibling, item);
-        return;
-      }
-      var sv = e.target.closest("[data-sv]");
-      if (sv) {
-        var sec = sv.closest(".cs-section"), a = sv.dataset.sv;
-        if (a === "del") sec.remove();
-        else if (a === "up" && sec.previousElementSibling) sec.parentNode.insertBefore(sec, sec.previousElementSibling);
-        else if (a === "down" && sec.nextElementSibling) sec.parentNode.insertBefore(sec.nextElementSibling, sec);
-        return;
-      }
+      var mv = e.target.closest('[data-mv="del"]');
+      if (mv) { mv.closest(".cs-item").remove(); return; }
+      var sv = e.target.closest('[data-sv="del"]');
+      if (sv) { sv.closest(".cs-section").remove(); return; }
       var pk = e.target.closest(".cs-icon-pick");
       if (pk) { openPickerFor(pk.closest(".cs-item")); return; }
     });
@@ -231,6 +219,7 @@
     var row = document.createElement("div");
     row.className = "glance-row";
     row.innerHTML =
+      ARPO.dragHandle("glance-handle") +
       '<div class="g-icon cs-icon-edit">' +
         '<div class="cs-icon-prev" data-prev></div>' +
         '<input type="hidden" class="g-f" data-k="icon" value="' + esc(d.icon || "") + '">' +
@@ -238,8 +227,6 @@
         '<button type="button" class="btn btn-sm cs-icon-pick">🖼 Icon</button>' +
       "</div>" +
       '<input class="g-f g-text" data-k="text" placeholder="What they\'d notice — e.g. A jagged scar across one eye" value="' + esc(d.text || "") + '">' +
-      '<button type="button" class="cs-mini" data-g="up" title="Move up">▲</button>' +
-      '<button type="button" class="cs-mini" data-g="down" title="Move down">▼</button>' +
       '<button type="button" class="cs-mini danger" data-g="del" title="Remove">✕</button>';
     updateIconPreview(row);
     return row;
@@ -257,16 +244,11 @@
     function addRow(d) { if (count() >= MAX) return; container.appendChild(makeGlance(d)); syncAdd(); }
 
     if (addButton) addButton.addEventListener("click", function () { addRow(); });
+    if (ARPO.sortable) ARPO.sortable(container, { item: ".glance-row", handle: ".glance-handle" });
 
     container.addEventListener("click", function (e) {
-      var g = e.target.closest("[data-g]");
-      if (g) {
-        var row = g.closest(".glance-row"), act = g.dataset.g;
-        if (act === "del") { row.remove(); syncAdd(); }
-        else if (act === "up" && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
-        else if (act === "down" && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
-        return;
-      }
+      var del = e.target.closest('[data-g="del"]');
+      if (del) { del.closest(".glance-row").remove(); syncAdd(); return; }
       var pk = e.target.closest(".cs-icon-pick");
       if (pk) { openPickerFor(pk.closest(".glance-row")); return; }
     });

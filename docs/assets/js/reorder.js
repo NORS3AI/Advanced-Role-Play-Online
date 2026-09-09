@@ -1,70 +1,97 @@
-/* Advanced Role Play Online — reorder sections and their fields on the create
-   form. Injects ▲▼ controls, swaps DOM nodes, and reads/writes the order. */
+/* Advanced Role Play Online — drag-and-drop reordering (pointer + touch).
+   Dragging only starts from a drag handle, so typing in fields never moves
+   anything and mobile/tablet users won't reorder by accident. */
 (function () {
   "use strict";
   var ARPO = (window.ARPO = window.ARPO || {});
 
+  var GRIP =
+    '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">' +
+    '<circle cx="5" cy="3.5" r="1.4"/><circle cx="11" cy="3.5" r="1.4"/>' +
+    '<circle cx="5" cy="8" r="1.4"/><circle cx="11" cy="8" r="1.4"/>' +
+    '<circle cx="5" cy="12.5" r="1.4"/><circle cx="11" cy="12.5" r="1.4"/></svg>';
+
+  ARPO.dragHandle = function (cls) {
+    return '<span class="drag-handle' + (cls ? " " + cls : "") +
+      '" tabindex="-1" title="Drag to reorder" aria-label="Drag to reorder">' + GRIP + "</span>";
+  };
+
+  // Reorder direct children matching `opts.item` within `container`, dragging
+  // only from `opts.handle`. Works with mouse and touch via Pointer Events.
+  ARPO.sortable = function (container, opts) {
+    var itemSel = opts.item, handleSel = opts.handle;
+    var drag = null, startX = 0, startY = 0, active = false;
+
+    container.addEventListener("pointerdown", function (e) {
+      if (e.button != null && e.button > 0) return;             // primary button / touch only
+      if (!e.target.closest(handleSel)) return;                  // must grab the handle
+      var item = e.target.closest(itemSel);
+      if (!item || item.parentNode !== container) return;
+      drag = item; startX = e.clientX; startY = e.clientY; active = false;
+      window.addEventListener("pointermove", onMove, { passive: false });
+      window.addEventListener("pointerup", onUp);
+      window.addEventListener("pointercancel", onUp);
+    });
+
+    function onMove(e) {
+      if (!drag) return;
+      if (!active) {
+        if (Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY) < 6) return;
+        active = true;
+        drag.classList.add("drag-active");
+        container.classList.add("is-sorting");
+        drag.style.pointerEvents = "none";        // so elementFromPoint sees siblings
+      }
+      e.preventDefault();
+      var under = document.elementFromPoint(e.clientX, e.clientY);
+      var over = under && under.closest(itemSel);
+      if (!over || over === drag || over.parentNode !== container) return;
+      var r = over.getBoundingClientRect();
+      var after;
+      if (Math.abs(e.clientY - (r.top + r.height / 2)) < r.height * 0.35) {
+        after = (e.clientX - r.left) > r.width / 2;   // same row (grid): use X
+      } else {
+        after = (e.clientY - r.top) > r.height / 2;   // otherwise: use Y
+      }
+      container.insertBefore(drag, after ? over.nextElementSibling : over);
+    }
+    function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      if (drag) { drag.style.pointerEvents = ""; drag.classList.remove("drag-active"); }
+      container.classList.remove("is-sorting");
+      drag = null; active = false;
+    }
+  };
+
   ARPO.initReorder = function (form) {
-    var actions = form.querySelector(".form-actions");
+    var wrap = document.getElementById("sortable-sections");
+    if (!wrap) return { apply: function () {}, read: function () { return {}; } };
 
-    function sectionEls() { return [].slice.call(form.querySelectorAll("fieldset[data-section]")); }
-    function fieldEls(fs) {
-      var cont = fs.querySelector(".fields");
-      return cont ? [].slice.call(cont.querySelectorAll(".field")) : [];
-    }
-
-    // Inject controls once.
-    sectionEls().forEach(function (fs) {
+    [].forEach.call(wrap.querySelectorAll("fieldset[data-section]"), function (fs) {
       var legend = fs.querySelector("legend");
-      if (legend && !legend.querySelector(".sec-move")) {
-        var s = document.createElement("span");
-        s.className = "sec-move";
-        s.innerHTML =
-          '<button type="button" class="cs-mini" data-secmv="up" title="Move section up" aria-label="Move section up">▲</button>' +
-          '<button type="button" class="cs-mini" data-secmv="down" title="Move section down" aria-label="Move section down">▼</button>';
-        legend.appendChild(s);
-      }
-      fieldEls(fs).forEach(function (field) {
-        var ctrl = field.querySelector("input, select, textarea");
-        if (ctrl && ctrl.name && !field.dataset.field) field.dataset.field = ctrl.name;
-        if (!field.querySelector(".fld-move")) {
-          var h = document.createElement("div");
-          h.className = "fld-move";
-          h.innerHTML =
-            '<button type="button" class="cs-mini" data-fldmv="up" title="Move up" aria-label="Move field up">▲</button>' +
-            '<button type="button" class="cs-mini" data-fldmv="down" title="Move down" aria-label="Move field down">▼</button>';
-          field.appendChild(h);
-        }
-      });
-    });
-
-    // Swap a node with its neighbor within a set (keeps non-members put).
-    function swap(node, members, dir) {
-      var i = members.indexOf(node), j = dir === "up" ? i - 1 : i + 1;
-      if (i < 0 || j < 0 || j >= members.length) return;
-      if (dir === "up") node.parentNode.insertBefore(node, members[j]);
-      else node.parentNode.insertBefore(members[j], node);
-    }
-
-    form.addEventListener("click", function (e) {
-      var sm = e.target.closest("[data-secmv]");
-      if (sm) { e.preventDefault(); swap(sm.closest("fieldset[data-section]"), sectionEls(), sm.dataset.secmv); return; }
-      var fm = e.target.closest("[data-fldmv]");
-      if (fm) {
-        e.preventDefault();
-        var field = fm.closest(".field");
-        swap(field, [].slice.call(field.parentNode.querySelectorAll(".field")), fm.dataset.fldmv);
+      if (legend && !legend.querySelector(".sec-handle")) legend.insertAdjacentHTML("beforeend", ARPO.dragHandle("sec-handle"));
+      var cont = fs.querySelector(".fields");
+      if (cont) {
+        [].forEach.call(cont.querySelectorAll(".field"), function (field) {
+          var ctrl = field.querySelector("input, select, textarea");
+          if (ctrl && ctrl.name && !field.dataset.field) field.dataset.field = ctrl.name;
+          if (!field.querySelector(".fld-handle")) field.insertAdjacentHTML("afterbegin", ARPO.dragHandle("fld-handle"));
+        });
+        ARPO.sortable(cont, { item: ".field", handle: ".fld-handle" });
       }
     });
+    ARPO.sortable(wrap, { item: "fieldset[data-section]", handle: ".sec-handle" });
 
     return {
       apply: function (sectionOrder, fieldOrder) {
         (sectionOrder || []).forEach(function (key) {
-          var fs = form.querySelector('fieldset[data-section="' + key + '"]');
-          if (fs && actions) form.insertBefore(fs, actions);   // reflow in saved order, before the actions row
+          var fs = wrap.querySelector('fieldset[data-section="' + key + '"]');
+          if (fs) wrap.appendChild(fs);
         });
         Object.keys(fieldOrder || {}).forEach(function (sec) {
-          var fs = form.querySelector('fieldset[data-section="' + sec + '"]');
+          var fs = wrap.querySelector('fieldset[data-section="' + sec + '"]');
           var cont = fs && fs.querySelector(".fields");
           if (!cont) return;
           (fieldOrder[sec] || []).forEach(function (fname) {
@@ -74,10 +101,11 @@
         });
       },
       read: function () {
-        var sectionOrder = sectionEls().map(function (fs) { return fs.dataset.section; });
+        var sectionOrder = [].map.call(wrap.querySelectorAll("fieldset[data-section]"), function (fs) { return fs.dataset.section; });
         var fieldOrder = {};
-        sectionEls().forEach(function (fs) {
-          var fields = fieldEls(fs).map(function (f) { return f.dataset.field; }).filter(Boolean);
+        [].forEach.call(wrap.querySelectorAll("fieldset[data-section]"), function (fs) {
+          var cont = fs.querySelector(".fields"); if (!cont) return;
+          var fields = [].map.call(cont.querySelectorAll(".field"), function (f) { return f.dataset.field; }).filter(Boolean);
           if (fields.length) fieldOrder[fs.dataset.section] = fields;
         });
         return { sectionOrder: sectionOrder, fieldOrder: fieldOrder };
