@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=11">
+  <link rel="stylesheet" href="assets/css/styles.css?v=12">
 </head>
 <body>
   <header class="site-header">
@@ -84,7 +84,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset data-section="identity">
         <legend>Identity</legend>
         <div class="fields">
           <div class="field">
@@ -110,7 +110,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset data-section="characteristics">
         <legend>Characteristics</legend>
         <div class="fields">
           <div class="field"><label for="race">Race</label><input id="race" name="race" placeholder="Human"></div>
@@ -126,7 +126,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset data-section="about">
         <legend>About</legend>
         <div class="fields">
           <div class="field full">
@@ -148,7 +148,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset data-section="guild">
         <legend>Guild &amp; Social</legend>
         <div class="fields">
           <div class="field"><label for="guildName">Guild name</label><input id="guildName" name="guildName" placeholder="The Silver Hand"></div>
@@ -157,7 +157,7 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset data-section="currently">
         <legend>Currently</legend>
         <div class="fields">
           <div class="field">
@@ -174,14 +174,14 @@
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset data-section="glance">
         <legend>At a Glance</legend>
         <p class="help" style="margin:-4px 0 6px">Quick things someone would notice — an icon and a short note. Up to 10.</p>
         <div id="glances"></div>
         <button type="button" class="btn btn-sm" id="add-glance">＋ Add glance</button>
       </fieldset>
 
-      <fieldset>
+      <fieldset data-section="custom">
         <legend>Custom Sections</legend>
         <p class="help" style="margin:-4px 0 6px">Add your own sections with text, sliders, comparisons, links, buttons, icons, and images.</p>
         <div id="sections"></div>
@@ -195,10 +195,11 @@
     </form>
   </main>
 
-  <script src="assets/js/icons.js?v=11"></script>
-  <script src="assets/js/store.js?v=11"></script>
-  <script src="assets/js/iconpicker.js?v=11"></script>
-  <script src="assets/js/builder.js?v=11"></script>
+  <script src="assets/js/icons.js?v=12"></script>
+  <script src="assets/js/store.js?v=12"></script>
+  <script src="assets/js/iconpicker.js?v=12"></script>
+  <script src="assets/js/builder.js?v=12"></script>
+  <script src="assets/js/reorder.js?v=12"></script>
   <script>
     (function () {
       var form = document.getElementById("char-form");
@@ -222,6 +223,7 @@
         document.getElementById("sections"), document.getElementById("add-section"));
       var glanceEditor = ARPO.createGlanceEditor(
         document.getElementById("glances"), document.getElementById("add-glance"));
+      var reorder = ARPO.initReorder(form);
 
       function draft() {
         return {
@@ -401,6 +403,7 @@
           iconInput.value = c.icon || "";
           editor.load(c.customSections || []);
           glanceEditor.load(c.glances || []);
+          reorder.apply(c.sectionOrder, c.fieldOrder);
         }
       }
 
@@ -429,6 +432,9 @@
         if (sections.length) data.customSections = sections; else delete data.customSections;
         var glances = glanceEditor.serialize();
         if (glances.length) data.glances = glances; else delete data.glances;
+        var ord = reorder.read();
+        data.sectionOrder = ord.sectionOrder;
+        data.fieldOrder = ord.fieldOrder;
         if (!data.id) delete data.id;
         ARPO.upsert(data);
         location.href = "manage.html";

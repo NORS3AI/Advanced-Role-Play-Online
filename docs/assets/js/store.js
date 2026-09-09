@@ -64,6 +64,32 @@
     ARPO.saveAll(ARPO.loadAll().filter(function (c) { return c.id !== id; }));
   };
 
+  // ---- section / field schema (for ordering) -----------------------------
+  ARPO.SECTIONS = ["identity", "characteristics", "about", "guild", "currently", "glance", "custom"];
+  ARPO.SECTION_FIELDS = {
+    identity: ["title", "firstName", "lastName", "nickname", "fullTitle"],
+    characteristics: ["race", "charClass", "age", "pronouns", "height", "weight", "eyeColor", "alignment", "birthplace", "residence"],
+    about: ["quote", "physical", "personality", "history"],
+    guild: ["guildName", "guildRank", "guildInfo"],
+    currently: ["rpStatus", "currently"]
+  };
+  ARPO.FIELD_LABELS = {
+    race: "Race", charClass: "Class", age: "Age", pronouns: "Pronouns", height: "Height",
+    weight: "Weight", eyeColor: "Eyes", alignment: "Alignment", birthplace: "Birthplace", residence: "Residence"
+  };
+  // Return `all` reordered per `saved`: saved-known first (in saved order),
+  // then any remaining defaults; unknown keys dropped.
+  ARPO.orderList = function (saved, all) {
+    saved = Array.isArray(saved) ? saved : [];
+    var out = saved.filter(function (k) { return all.indexOf(k) !== -1; });
+    all.forEach(function (k) { if (out.indexOf(k) === -1) out.push(k); });
+    return out;
+  };
+  ARPO.fieldsOf = function (c, section) {
+    var all = ARPO.SECTION_FIELDS[section] || [];
+    return ARPO.orderList(c && c.fieldOrder && c.fieldOrder[section], all);
+  };
+
   // ---- settings ----------------------------------------------------------
   ARPO.SETTINGS_KEY = "arpo:settings:v1";
   ARPO.loadSettings = function () {

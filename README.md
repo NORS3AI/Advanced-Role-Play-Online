@@ -37,7 +37,11 @@ generic so it can grow to other games, tabletop settings, and original worlds.
   - **About** — quote, physical description, personality, history
   - **Currently** — in-character / out-of-character status and current activity
   - **Custom Sections** — add your own sections containing **text**, **sliders**,
-    **links**, **buttons**, **icons** (WoW or bundled), and **images**
+    **comparisons**, **links**, **buttons**, **icons** (WoW or bundled), and **images**
+  - **Reorder everything** — ▲▼ controls reorder the main sections (Identity,
+    Characteristics, About, Guild, Currently, At a Glance, Custom Sections) and the
+    individual fields within each; the order is saved and reflected on the profile
+    and in exports.
 - **Manage Characters** — a gallery of everything you've created. Click a card
   to open the character's **profile page**, or use each card's action bar to
   **Edit**, **Export** (PNG / PDF / Word), **Copy share link**, or **Delete**.

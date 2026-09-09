@@ -238,6 +238,8 @@
         '<button type="button" class="btn btn-sm cs-icon-pick">🖼 Icon</button>' +
       "</div>" +
       '<input class="g-f g-text" data-k="text" placeholder="What they\'d notice — e.g. A jagged scar across one eye" value="' + esc(d.text || "") + '">' +
+      '<button type="button" class="cs-mini" data-g="up" title="Move up">▲</button>' +
+      '<button type="button" class="cs-mini" data-g="down" title="Move down">▼</button>' +
       '<button type="button" class="cs-mini danger" data-g="del" title="Remove">✕</button>';
     updateIconPreview(row);
     return row;
@@ -257,8 +259,14 @@
     if (addButton) addButton.addEventListener("click", function () { addRow(); });
 
     container.addEventListener("click", function (e) {
-      var del = e.target.closest('[data-g="del"]');
-      if (del) { del.closest(".glance-row").remove(); syncAdd(); return; }
+      var g = e.target.closest("[data-g]");
+      if (g) {
+        var row = g.closest(".glance-row"), act = g.dataset.g;
+        if (act === "del") { row.remove(); syncAdd(); }
+        else if (act === "up" && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+        else if (act === "down" && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+        return;
+      }
       var pk = e.target.closest(".cs-icon-pick");
       if (pk) { openPickerFor(pk.closest(".glance-row")); return; }
     });
