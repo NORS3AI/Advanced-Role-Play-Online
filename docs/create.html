@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=15">
+  <link rel="stylesheet" href="assets/css/styles.css?v=16">
 </head>
 <body>
   <header class="site-header">
@@ -165,7 +165,10 @@
         <legend>Custom Sections</legend>
         <p class="help" style="margin:-4px 0 6px">Add your own sections with text, sliders, comparisons, links, buttons, icons, and images.</p>
         <div id="sections"></div>
-        <button type="button" class="btn btn-sm" id="add-section">＋ Add section</button>
+        <div class="cs-add-section-bar">
+          <button type="button" class="btn btn-sm" id="add-section">＋ <span class="add-label">Add section</span></button>
+          <button type="button" class="cs-mini add-rename" id="rename-add-section" tabindex="-1" title="Rename" aria-label="Rename add-section button">✎</button>
+        </div>
       </fieldset>
       </div>
 
@@ -176,11 +179,11 @@
     </form>
   </main>
 
-  <script src="assets/js/icons.js?v=15"></script>
-  <script src="assets/js/store.js?v=15"></script>
-  <script src="assets/js/iconpicker.js?v=15"></script>
-  <script src="assets/js/reorder.js?v=15"></script>
-  <script src="assets/js/builder.js?v=15"></script>
+  <script src="assets/js/icons.js?v=16"></script>
+  <script src="assets/js/store.js?v=16"></script>
+  <script src="assets/js/iconpicker.js?v=16"></script>
+  <script src="assets/js/reorder.js?v=16"></script>
+  <script src="assets/js/builder.js?v=16"></script>
   <script>
     (function () {
       var form = document.getElementById("char-form");
@@ -195,10 +198,15 @@
       var iconCurrent = document.getElementById("icon-current");
 
       var editor = ARPO.createSectionsEditor(
-        document.getElementById("sections"), document.getElementById("add-section"));
+        document.getElementById("sections"),
+        document.getElementById("add-section"),
+        document.getElementById("rename-add-section"));
       var glanceEditor = ARPO.createGlanceEditor(
         document.getElementById("glances"), document.getElementById("add-glance"));
       var reorder = ARPO.initReorder(form);
+      // rename each block + add custom rows to any block (runs after initReorder
+      // so the section legends already carry their collapse/drag controls)
+      var blocks = ARPO.enhanceBlocks(document.getElementById("sortable-sections"), "sections");
 
       function draft() {
         return {
@@ -260,6 +268,8 @@
           editor.load(c.customSections || []);
           glanceEditor.load(c.glances || []);
           reorder.apply(c.sectionOrder, c.fieldOrder);
+          blocks.load(c);
+          if (c.addLabels && c.addLabels.custom) editor.setAddLabel(c.addLabels.custom);
         }
       }
 
@@ -286,6 +296,18 @@
         var ord = reorder.read();
         data.sectionOrder = ord.sectionOrder;
         data.fieldOrder = ord.fieldOrder;
+
+        // per-block: custom names, renamed add labels, and custom rows
+        var blk = blocks.serialize();
+        if (Object.keys(blk.sectionTitles).length) data.sectionTitles = blk.sectionTitles; else delete data.sectionTitles;
+        if (Object.keys(blk.blockItems).length) data.blockItems = blk.blockItems; else delete data.blockItems;
+        var addLabels = blk.addLabels || {};
+        if (document.getElementById("sections")) {
+          var customAdd = editor.addLabel();
+          if (customAdd && customAdd !== editor.DEFAULT_ADD_LABEL) addLabels.custom = customAdd;
+        }
+        if (Object.keys(addLabels).length) data.addLabels = addLabels; else delete data.addLabels;
+
         if (!data.id) delete data.id;
         ARPO.upsert(data);
         location.href = "manage.html";

@@ -385,8 +385,22 @@ textarea { min-height: 92px; }
 .cs-type { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--gold); }
 .cs-item-body { display: flex; flex-direction: column; gap: 8px; }
 .cs-item-body textarea { min-height: 64px; }
-.cs-add { margin-top: 10px; }
+.cs-add { margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cs-add-type { max-width: 220px; }
+.cs-add-label { font-size: .8rem; color: var(--muted); }
+.cs-add-label[contenteditable="true"] { outline: 2px solid var(--gold-dim); border-radius: 4px; padding: 1px 4px; color: var(--text); }
+/* rename pencils (block titles + add-section labels) */
+.sec-rename, .add-rename { font-size: .72rem; }
+.sec-title { font-family: var(--font-display); color: var(--gold); }
+.sec-title[contenteditable="true"] {
+  outline: 2px solid var(--gold-dim); border-radius: 5px; padding: 0 5px; color: var(--text);
+}
+/* custom rows added directly to a built-in block */
+.block-extras { margin-top: 14px; border-top: 1px dashed var(--border); padding-top: 12px; }
+.cs-add-section-bar { display: flex; align-items: center; gap: 8px; }
+#add-section .add-label[contenteditable="true"] {
+  outline: 2px solid #fff6; border-radius: 4px; padding: 0 4px;
+}
 .cs-slider-edit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .cs-range { flex: 1; min-width: 140px; padding: 0; }
 .cs-slider-edit .cs-val { min-width: 34px; text-align: center; color: var(--gold); font-weight: 600; }

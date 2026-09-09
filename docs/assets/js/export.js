@@ -10,6 +10,12 @@
     ["birthplace", "Birthplace"], ["residence", "Residence"]
   ];
 
+  // A block's heading = the character's custom name for it, else the default.
+  ARPO.blockTitle = function (c, key, def) {
+    var t = c && c.sectionTitles && c.sectionTitles[key];
+    return (t && String(t).trim()) || def;
+  };
+
   function statRow(c) {
     var cells = CHARACTERISTICS
       .filter(function (f) { return c[f[0]]; })
@@ -25,6 +31,12 @@
     return "<h3>" + esc(title) + '</h3><p class="text">' + esc(text) + "</p>";
   }
 
+  // Optional heading for blocks that normally have none — shown only when the
+  // player has given the block a custom name.
+  function customHeading(c, key) {
+    var t = c && c.sectionTitles && c.sectionTitles[key];
+    return t ? "<h3>" + esc(String(t).trim()) + "</h3>" : "";
+  }
   // Characteristics stat grid, honoring the character's field order.
   function renderCharacteristics(c) {
     var fields = ARPO.fieldsOf(c, "characteristics").filter(function (k) { return c[k]; });
@@ -33,18 +45,19 @@
       return '<div class="stat"><span class="k">' + esc(ARPO.FIELD_LABELS[k] || k) +
         '</span><span class="v">' + esc(c[k]) + "</span></div>";
     }).join("");
-    return '<div class="row">' + cells + "</div>";
+    return customHeading(c, "characteristics") + '<div class="row">' + cells + "</div>";
   }
   // About blocks (quote / physical / personality / history), honoring field order.
   function renderAbout(c) {
     var titles = { physical: "Physical Description", personality: "Personality", history: "History" };
-    return ARPO.fieldsOf(c, "about").map(function (k) {
+    var body = ARPO.fieldsOf(c, "about").map(function (k) {
       if (!c[k]) return "";
       if (k === "quote") return '<p class="text" style="font-style:italic;color:#d4af6a">“' + esc(c.quote) + "”</p>";
       return section(titles[k], c[k]);
     }).join("");
+    return body ? customHeading(c, "about") + body : "";
   }
-  function renderCurrentlyBlock(c) { return c.currently ? section("Currently", c.currently) : ""; }
+  function renderCurrentlyBlock(c) { return c.currently ? section(ARPO.blockTitle(c, "currently", "Currently"), c.currently) : ""; }
 
   // ---- custom sections ---------------------------------------------------
   function csItem(it, forExport) {
@@ -99,6 +112,13 @@
     }
     return "";
   }
+  // Custom rows a player added directly to a built-in block.
+  function renderBlockItems(c, key, forExport) {
+    var arr = c && c.blockItems && c.blockItems[key];
+    if (!arr || !arr.length) return "";
+    return arr.map(function (it) { return csItem(it, forExport); }).join("");
+  }
+
   // Guild & Social block (rendered above Currently).
   function renderGuild(c) {
     if (!c.guildName && !c.guildRank && !c.guildInfo) return "";
@@ -109,7 +129,8 @@
         (c.guildRank ? '<span class="rank"> ' + (c.guildName ? "— " : "") + esc(c.guildRank) + "</span>" : "") +
         "</p>";
     }
-    return "<h3>Guild &amp; Social</h3>" + line + (c.guildInfo ? '<p class="text">' + esc(c.guildInfo) + "</p>" : "");
+    return "<h3>" + esc(ARPO.blockTitle(c, "guild", "Guild & Social")) + "</h3>" +
+      line + (c.guildInfo ? '<p class="text">' + esc(c.guildInfo) + "</p>" : "");
   }
   ARPO.renderGuild = renderGuild;
 
@@ -117,7 +138,7 @@
   function renderGlances(c, forExport) {
     var g = (c.glances || []).filter(function (x) { return x.text || x.icon; });
     if (!g.length) return "";
-    return '<h3>At a Glance</h3><div class="glances">' + g.map(function (x) {
+    return "<h3>" + esc(ARPO.blockTitle(c, "glance", "At a Glance")) + '</h3><div class="glances">' + g.map(function (x) {
       var ic = ARPO.inlineIcon(x.iconKind, x.icon, 28, forExport);
       return '<div class="glance"><span class="cs-ic">' + ic + '</span><span class="g-txt">' + esc(x.text || "") + "</span></div>";
     }).join("") + "</div>";
@@ -134,9 +155,32 @@
     }).join("");
   };
 
+  function wordH2(accent, text) {
+    return '<h2 style="color:' + accent + ';font-family:Georgia,serif;margin:16px 0 4px">' + esc(text) + "</h2>";
+  }
+  // One custom item, rendered for a Word document.
+  function wordItem(it, accent) {
+    var lbl = it.label ? esc(it.label) : "";
+    if (it.type === "text") return (lbl ? "<p><b>" + lbl + "</b></p>" : "") + (it.value ? '<p style="margin:0 0 8px">' + esc(it.value).replace(/\n/g, "<br>") + "</p>" : "");
+    if (it.type === "slider") return '<p style="margin:0 0 6px">' + (lbl ? "<b>" + lbl + ":</b> " : "") + esc(it.value != null ? it.value : "") + " / " + esc(it.max != null ? it.max : 100) + "</p>";
+    if (it.type === "comparison") { var l = esc(it.left || ""), r = esc(it.right || ""), v = Number(it.value != null ? it.value : 50); return (l || r) ? '<p style="margin:0 0 6px">' + l + " " + (100 - v) + " — " + v + " " + r + "</p>" : ""; }
+    if (it.type === "link" || it.type === "button") return it.url ? '<p style="margin:0 0 6px"><a href="' + esc(it.url) + '">' + (lbl || esc(it.url)) + "</a></p>" : "";
+    if (it.type === "icon") {
+      var img = it.iconKind === "wow" && it.icon ? '<img src="' + esc(ARPO.wowIconUrl(it.icon)) + '" width="20" height="20"> ' : "";
+      return (img || lbl) ? '<p style="margin:0 0 6px">' + img + lbl + "</p>" : "";
+    }
+    if (it.type === "image") return it.url ? '<p style="margin:0 0 6px"><img src="' + esc(it.url) + '" style="max-width:420px"><br>' + lbl + "</p>" : "";
+    return "";
+  }
+  // Custom rows a player added to a built-in block (Word).
+  function wordBlockItems(c, key, accent) {
+    var arr = c && c.blockItems && c.blockItems[key];
+    if (!arr || !arr.length) return "";
+    return arr.map(function (it) { return wordItem(it, accent); }).join("");
+  }
   function wordGuild(c, accent) {
     if (!c.guildName && !c.guildRank && !c.guildInfo) return "";
-    var h = '<h2 style="color:' + accent + ';font-family:Georgia,serif;margin:16px 0 4px">Guild &amp; Social</h2>';
+    var h = wordH2(accent, ARPO.blockTitle(c, "guild", "Guild & Social"));
     var line = (c.guildName || c.guildRank)
       ? '<p style="margin:0 0 6px">' + (c.guildName ? "<b>" + esc(c.guildName) + "</b>" : "") + (c.guildRank ? " — " + esc(c.guildRank) : "") + "</p>" : "";
     return h + line + (c.guildInfo ? '<p style="margin:0 0 8px">' + esc(c.guildInfo).replace(/\n/g, "<br>") + "</p>" : "");
@@ -148,7 +192,7 @@
       var img = x.iconKind === "wow" && x.icon ? '<img src="' + esc(ARPO.wowIconUrl(x.icon)) + '" width="18" height="18"> ' : "";
       return "<li>" + img + esc(x.text || "") + "</li>";
     }).join("");
-    return '<h2 style="color:' + accent + ';font-family:Georgia,serif;margin:16px 0 4px">At a Glance</h2><ul style="margin:0 0 8px">' + rows + "</ul>";
+    return wordH2(accent, ARPO.blockTitle(c, "glance", "At a Glance")) + '<ul style="margin:0 0 8px">' + rows + "</ul>";
   }
 
   // Word (.doc) rendering of custom sections.
@@ -156,21 +200,9 @@
     var secs = (c && c.customSections) || [];
     if (!secs.length) return "";
     return secs.map(function (s) {
-      var body = (s.items || []).map(function (it) {
-        var lbl = it.label ? esc(it.label) : "";
-        if (it.type === "text") return (lbl ? "<p><b>" + lbl + "</b></p>" : "") + (it.value ? '<p style="margin:0 0 8px">' + esc(it.value).replace(/\n/g, "<br>") + "</p>" : "");
-        if (it.type === "slider") return '<p style="margin:0 0 6px">' + (lbl ? "<b>" + lbl + ":</b> " : "") + esc(it.value != null ? it.value : "") + " / " + esc(it.max != null ? it.max : 100) + "</p>";
-        if (it.type === "comparison") { var l = esc(it.left || ""), r = esc(it.right || ""), v = Number(it.value != null ? it.value : 50); return (l || r) ? '<p style="margin:0 0 6px">' + l + " " + (100 - v) + " — " + v + " " + r + "</p>" : ""; }
-        if (it.type === "link" || it.type === "button") return it.url ? '<p style="margin:0 0 6px"><a href="' + esc(it.url) + '">' + (lbl || esc(it.url)) + "</a></p>" : "";
-        if (it.type === "icon") {
-          var img = it.iconKind === "wow" && it.icon ? '<img src="' + esc(ARPO.wowIconUrl(it.icon)) + '" width="20" height="20"> ' : "";
-          return (img || lbl) ? '<p style="margin:0 0 6px">' + img + lbl + "</p>" : "";
-        }
-        if (it.type === "image") return it.url ? '<p style="margin:0 0 6px"><img src="' + esc(it.url) + '" style="max-width:420px"><br>' + lbl + "</p>" : "";
-        return "";
-      }).join("");
+      var body = (s.items || []).map(function (it) { return wordItem(it, accent); }).join("");
       if (!body && !s.title) return "";
-      return (s.title ? '<h2 style="color:' + accent + ';font-family:Georgia,serif;margin:16px 0 4px">' + esc(s.title) + "</h2>" : "") + body;
+      return (s.title ? wordH2(accent, s.title) : "") + body;
     }).join("");
   }
 
@@ -191,7 +223,7 @@
       custom: function (x) { return ARPO.renderCustomSections(x, forExport); }
     };
     var body = ARPO.orderList(c.sectionOrder, ARPO.SECTIONS).map(function (k) {
-      return renderers[k] ? renderers[k](c) : "";
+      return (renderers[k] ? renderers[k](c) : "") + renderBlockItems(c, k, forExport);
     }).join("");
 
     var el = document.createElement("div");
@@ -303,13 +335,21 @@
         '<div style="color:#666;margin:2px 0 14px">' + esc(ARPO.raceClass(c)) +
           (c.nickname ? " &middot; “" + esc(c.nickname) + "”" : "") + "</div>" +
         (c.quote ? '<p style="font-style:italic;color:' + accent + '">“' + esc(c.quote) + '”</p>' : "") +
+        wordBlockItems(c, "identity", accent) +
+        (c.sectionTitles && c.sectionTitles.characteristics ? wordH2(accent, c.sectionTitles.characteristics) : "") +
         (stats ? "<table>" + stats + "</table>" : "") +
+        wordBlockItems(c, "characteristics", accent) +
+        (c.sectionTitles && c.sectionTitles.about ? wordH2(accent, c.sectionTitles.about) : "") +
         block("Physical Description", c.physical) +
         block("Personality", c.personality) +
         block("History", c.history) +
+        wordBlockItems(c, "about", accent) +
         wordGuild(c, accent) +
-        block("Currently", c.currently) +
+        wordBlockItems(c, "guild", accent) +
+        block(ARPO.blockTitle(c, "currently", "Currently"), c.currently) +
+        wordBlockItems(c, "currently", accent) +
         wordGlances(c, accent) +
+        wordBlockItems(c, "glance", accent) +
         wordCustom(c, accent) +
         '<hr><div style="color:#999;font-size:12px">Advanced Role Play Online &middot; ' +
           (c.rpStatus === "ic" ? "In Character" : "Out of Character") + "</div>" +
