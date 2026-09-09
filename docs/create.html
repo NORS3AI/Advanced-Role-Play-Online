@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=14">
+  <link rel="stylesheet" href="assets/css/styles.css?v=15">
 </head>
 <body>
   <header class="site-header">
@@ -176,11 +176,11 @@
     </form>
   </main>
 
-  <script src="assets/js/icons.js?v=14"></script>
-  <script src="assets/js/store.js?v=14"></script>
-  <script src="assets/js/iconpicker.js?v=14"></script>
-  <script src="assets/js/reorder.js?v=14"></script>
-  <script src="assets/js/builder.js?v=14"></script>
+  <script src="assets/js/icons.js?v=15"></script>
+  <script src="assets/js/store.js?v=15"></script>
+  <script src="assets/js/iconpicker.js?v=15"></script>
+  <script src="assets/js/reorder.js?v=15"></script>
+  <script src="assets/js/builder.js?v=15"></script>
   <script>
     (function () {
       var form = document.getElementById("char-form");
@@ -277,9 +277,11 @@
         if (!data.firstName) { ARPO.toast("Please enter a first name."); form.elements.firstName.focus(); return; }
         if (data.iconKind === "wow" && data.icon) data.icon = data.icon.toLowerCase();
         if (!data.icon) data.iconKind = "";
-        var sections = editor.serialize();
+        // A removed "Custom Sections" / "At a Glance" block detaches its
+        // container, so only serialize when the block is still in the form.
+        var sections = document.getElementById("sections") ? editor.serialize() : [];
         if (sections.length) data.customSections = sections; else delete data.customSections;
-        var glances = glanceEditor.serialize();
+        var glances = document.getElementById("glances") ? glanceEditor.serialize() : [];
         if (glances.length) data.glances = glances; else delete data.glances;
         var ord = reorder.read();
         data.sectionOrder = ord.sectionOrder;

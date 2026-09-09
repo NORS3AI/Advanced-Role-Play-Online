@@ -213,7 +213,16 @@ fieldset {
 }
 legend {
   font-family: var(--font-display); color: var(--gold); padding: 0 10px; font-size: 1.05rem;
+  width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;
 }
+/* collapse chevron + per-section controls live in the legend */
+.sec-collapse {
+  font-size: .8rem; line-height: 1; display: inline-flex; align-items: center;
+  justify-content: center; width: 26px; height: 26px; flex: 0 0 auto;
+}
+.sec-ctrls { margin-left: auto; display: inline-flex; gap: 6px; align-items: center; }
+fieldset.collapsed { padding-bottom: 14px; }
+fieldset.collapsed > *:not(legend) { display: none; }
 /* drag-to-reorder handles */
 .drag-handle {
   display: inline-flex; align-items: center; justify-content: center;
@@ -222,10 +231,16 @@ legend {
 }
 .drag-handle:hover { color: var(--gold); }
 .drag-handle:active { cursor: grabbing; }
-.sec-handle { margin-left: 8px; vertical-align: middle; padding: 2px 3px; }
+.sec-handle { vertical-align: middle; padding: 2px 3px; }
 .field { position: relative; }
-.fld-handle { position: absolute; top: 2px; right: 2px; width: 24px; height: 22px; opacity: .5; }
-.field:hover .fld-handle { opacity: 1; }
+.fld-ctrls {
+  position: absolute; top: 2px; right: 2px; z-index: 2;
+  display: inline-flex; gap: 3px; align-items: center; opacity: .5;
+}
+.field:hover .fld-ctrls, .fld-ctrls:focus-within { opacity: 1; }
+.fld-handle { width: 24px; height: 22px; }
+.fld-remove { width: 22px; height: 22px; font-size: .75rem; }
+#sortable-sections .field > label { padding-right: 56px; }
 .cs-item-handle, .cs-sec-handle, .glance-handle {
   flex: 0 0 auto; width: 28px; height: 28px;
   border: 1px solid var(--border); background: var(--panel-2);
