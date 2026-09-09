@@ -25,6 +25,27 @@
     return "<h3>" + esc(title) + '</h3><p class="text">' + esc(text) + "</p>";
   }
 
+  // Characteristics stat grid, honoring the character's field order.
+  function renderCharacteristics(c) {
+    var fields = ARPO.fieldsOf(c, "characteristics").filter(function (k) { return c[k]; });
+    if (!fields.length) return "";
+    var cells = fields.map(function (k) {
+      return '<div class="stat"><span class="k">' + esc(ARPO.FIELD_LABELS[k] || k) +
+        '</span><span class="v">' + esc(c[k]) + "</span></div>";
+    }).join("");
+    return '<div class="row">' + cells + "</div>";
+  }
+  // About blocks (quote / physical / personality / history), honoring field order.
+  function renderAbout(c) {
+    var titles = { physical: "Physical Description", personality: "Personality", history: "History" };
+    return ARPO.fieldsOf(c, "about").map(function (k) {
+      if (!c[k]) return "";
+      if (k === "quote") return '<p class="text" style="font-style:italic;color:#d4af6a">“' + esc(c.quote) + "”</p>";
+      return section(titles[k], c[k]);
+    }).join("");
+  }
+  function renderCurrentlyBlock(c) { return c.currently ? section("Currently", c.currently) : ""; }
+
   // ---- custom sections ---------------------------------------------------
   function csItem(it, forExport) {
     var lbl = it.label ? esc(it.label) : "";
@@ -160,6 +181,19 @@
       ? '<span class="pill ic"><span class="dot"></span>In Character</span>'
       : '<span class="pill ooc"><span class="dot"></span>Out of Character</span>';
 
+    var renderers = {
+      identity: function () { return ""; },   // shown in the banner
+      characteristics: renderCharacteristics,
+      about: renderAbout,
+      guild: renderGuild,
+      currently: renderCurrentlyBlock,
+      glance: function (x) { return renderGlances(x, forExport); },
+      custom: function (x) { return ARPO.renderCustomSections(x, forExport); }
+    };
+    var body = ARPO.orderList(c.sectionOrder, ARPO.SECTIONS).map(function (k) {
+      return renderers[k] ? renderers[k](c) : "";
+    }).join("");
+
     var el = document.createElement("div");
     el.className = "sheet";
     el.innerHTML =
@@ -174,17 +208,7 @@
           "</div>" +
         "</div>" +
       "</div>" +
-      '<div class="body">' +
-        statRow(c) +
-        (c.quote ? '<p class="text" style="font-style:italic;color:#d4af6a">“' + esc(c.quote) + '”</p>' : "") +
-        section("Physical Description", c.physical) +
-        section("Personality", c.personality) +
-        section("History", c.history) +
-        renderGuild(c) +
-        (c.currently ? section("Currently", c.currently) : "") +
-        renderGlances(c, forExport) +
-        ARPO.renderCustomSections(c, forExport) +
-      "</div>" +
+      '<div class="body">' + body + "</div>" +
       '<div class="foot"><span>Advanced Role Play Online</span>' + status + "</div>";
     return el;
   };

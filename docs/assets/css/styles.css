@@ -214,6 +214,15 @@ fieldset {
 legend {
   font-family: var(--font-display); color: var(--gold); padding: 0 10px; font-size: 1.05rem;
 }
+.sec-move { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: middle; }
+.field { position: relative; }
+.fld-move {
+  position: absolute; top: 0; right: 0; display: inline-flex; gap: 3px;
+  opacity: .28; transition: opacity .12s ease;
+}
+.field:hover .fld-move, .fld-move:focus-within { opacity: 1; }
+.fld-move .cs-mini { width: 22px; height: 22px; font-size: .7rem; }
+.field.full .fld-move { top: -2px; }
 .fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 18px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field.full { grid-column: 1 / -1; }
