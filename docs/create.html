@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=9">
+  <link rel="stylesheet" href="assets/css/styles.css?v=10">
 </head>
 <body>
   <header class="site-header">
@@ -61,14 +61,14 @@
               <div class="tab-panel" data-panel="wow" style="margin-top:12px">
                 <div class="wow-custom">
                   <div class="thumb" id="wow-thumb">?</div>
-                  <input type="text" id="wow-name" placeholder="Wowhead icon name — e.g. spell_fire_fireball02">
+                  <input type="search" id="wow-name" placeholder="Search 30,000+ WoW icons — sword, fire, holy…  (or type an exact name + Enter)">
                 </div>
                 <div class="wow-help" style="margin-top:6px">
-                  Use any WoW icon: find its name on
-                  <a href="https://www.wowhead.com/icons" target="_blank" rel="noopener">wowhead.com/icons</a>
-                  (the icon's file name), or pick a popular one below.
+                  Scroll to browse the full WoW icon library — it loads as you go. Or find an exact name on
+                  <a href="https://www.wowhead.com/icons" target="_blank" rel="noopener">wowhead.com/icons</a>.
                 </div>
-                <div class="icon-grid" id="wow-grid" style="margin-top:10px"></div>
+                <div class="wow-count" id="wow-count"></div>
+                <div class="icon-grid" id="wow-grid" style="margin-top:6px"></div>
               </div>
 
               <div class="tab-panel" data-panel="svg" hidden style="margin-top:12px">
@@ -195,9 +195,9 @@
     </form>
   </main>
 
-  <script src="assets/js/icons.js?v=9"></script>
-  <script src="assets/js/store.js?v=9"></script>
-  <script src="assets/js/builder.js?v=9"></script>
+  <script src="assets/js/icons.js?v=10"></script>
+  <script src="assets/js/store.js?v=10"></script>
+  <script src="assets/js/builder.js?v=10"></script>
   <script>
     (function () {
       var form = document.getElementById("char-form");
@@ -243,7 +243,7 @@
         refreshPreview();
       }
       function highlightGrids() {
-        [].forEach.call(wowGrid.children, function (b) {
+        [].forEach.call(wowGrid.querySelectorAll(".wow-tile"), function (b) {
           b.classList.toggle("sel", kindInput.value === "wow" && b.dataset.name === iconInput.value);
         });
         [].forEach.call(svgGrid.children, function (b) {
@@ -277,31 +277,84 @@
         if (t.dataset.tab === "none") select("", "");
       });
 
-      // ---- WoW icons ----
+      // ---- WoW icons: lazy, fade-in, infinite-scroll grid over the full library ----
+      var wowCountEl = document.getElementById("wow-count");
+      var WOW_BATCH = 90;
+      var wowMaster = ARPO.WOW_ICONS.slice();   // curated fallback until the full list loads
+      var wowFiltered = wowMaster, wowShown = 0, wowSentinel = null, wowObserver = null;
+
       function paintWowThumb() {
-        var n = wowName.value.trim();
+        var n = (kindInput.value === "wow" ? iconInput.value : "").trim();
         if (!n) { wowThumb.textContent = "?"; return; }
         wowThumb.innerHTML = '<img alt="" src="' + ARPO.wowIconUrl(n) +
           '" onerror="this.parentNode.textContent=\'?\'">';
       }
-      wowName.addEventListener("input", function () {
-        paintWowThumb();
-        var n = wowName.value.trim().toLowerCase();
-        if (n) select("wow", n); else if (kindInput.value === "wow") select("", "");
-      });
-      function paintWowGrid() {
-        wowGrid.innerHTML = "";
-        ARPO.WOW_ICONS.forEach(function (name) {
-          var b = document.createElement("button");
-          b.type = "button"; b.className = "icon-opt"; b.dataset.name = name; b.title = name;
-          b.innerHTML = '<img alt="" loading="lazy" src="' + ARPO.wowIconUrl(name, "medium") +
-            '" onerror="this.closest(\'.icon-opt\').style.display=\'none\'">';
-          b.addEventListener("click", function () {
-            wowName.value = name; paintWowThumb(); showTab("wow"); select("wow", name);
-          });
-          wowGrid.appendChild(b);
-        });
+
+      function wowTile(name) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "icon-opt wow-tile" + (kindInput.value === "wow" && iconInput.value === name ? " sel" : "");
+        b.dataset.name = name; b.title = name;
+        var img = document.createElement("img");
+        img.alt = ""; img.loading = "lazy";
+        img.addEventListener("load", function () { img.classList.add("loaded"); });
+        img.addEventListener("error", function () { b.style.display = "none"; });
+        img.src = ARPO.wowIconUrl(name, "medium");
+        b.appendChild(img);
+        b.addEventListener("click", function () { select("wow", name); paintWowThumb(); });
+        return b;
       }
+      function updateWowCount() {
+        if (!wowCountEl) return;
+        wowCountEl.textContent = wowFiltered.length
+          ? (wowShown < wowFiltered.length ? "Showing " + wowShown + " of " + wowFiltered.length.toLocaleString() + " icons — scroll for more"
+                                           : wowFiltered.length.toLocaleString() + " icons")
+          : "No icons match your search.";
+      }
+      function appendWowBatch() {
+        var end = Math.min(wowShown + WOW_BATCH, wowFiltered.length);
+        var frag = document.createDocumentFragment();
+        for (var i = wowShown; i < end; i++) frag.appendChild(wowTile(wowFiltered[i]));
+        wowShown = end;
+        wowGrid.insertBefore(frag, wowSentinel);
+        updateWowCount();
+        if (wowShown >= wowFiltered.length && wowObserver) wowObserver.unobserve(wowSentinel);
+      }
+      function resetWowGrid(filter) {
+        filter = (filter || "").trim().toLowerCase();
+        wowFiltered = filter ? wowMaster.filter(function (n) { return n.indexOf(filter) !== -1; }) : wowMaster;
+        wowGrid.innerHTML = "";
+        wowShown = 0;
+        wowSentinel = document.createElement("div");
+        wowSentinel.className = "wow-sentinel";
+        wowGrid.appendChild(wowSentinel);
+        if (!wowObserver) {
+          wowObserver = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { if (e.isIntersecting) appendWowBatch(); });
+          }, { root: wowGrid, rootMargin: "250px" });
+        }
+        wowObserver.observe(wowSentinel);
+        appendWowBatch();
+      }
+
+      var wowFilterTimer;
+      wowName.addEventListener("input", function () {
+        clearTimeout(wowFilterTimer);
+        wowFilterTimer = setTimeout(function () { resetWowGrid(wowName.value); }, 160);
+      });
+      wowName.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          var n = wowName.value.trim().toLowerCase();
+          if (n) { select("wow", n); paintWowThumb(); }
+        }
+      });
+
+      // Load the full icon library (bundled) and swap it in when ready.
+      fetch("assets/data/wow-icons.json?v=10").then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (list) {
+          if (list && list.length) { wowMaster = list; resetWowGrid(wowName.value); }
+        }).catch(function () { /* keep curated fallback */ });
 
       // ---- Simple (SVG) icons ----
       function paintSvg(filter) {
@@ -353,10 +406,11 @@
 
       // ---- init ----
       paintSwatches();
-      paintWowGrid();
+      resetWowGrid("");
+      paintWowThumb();
       paintSvg("");
       if (!document.querySelector("#glances .glance-row")) glanceEditor.load([]);
-      if (kindInput.value === "wow") { wowName.value = iconInput.value; paintWowThumb(); showTab("wow"); }
+      if (kindInput.value === "wow") { showTab("wow"); }
       else if (kindInput.value === "svg" && iconInput.value) { showTab("svg"); }
       else if (!iconInput.value) { showTab("wow"); }
       highlightGrids();
