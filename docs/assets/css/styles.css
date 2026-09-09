@@ -389,9 +389,21 @@ textarea { min-height: 92px; }
 .cs-ig img { width: 100%; height: 100%; object-fit: cover; }
 .cs-img-prev { max-width: 220px; border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
 .cs-img-prev img { display: block; width: 100%; }
-.cs-color { width: 40px; height: 28px; padding: 0; border: 1px solid var(--border-2); border-radius: 6px; background: var(--bg); cursor: pointer; }
-.cs-cmp-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.cs-cmp-row input { flex: 1; min-width: 120px; }
+.cs-color { width: 40px; height: 28px; padding: 0; border: 1px solid var(--border-2); border-radius: 6px; background: var(--bg); cursor: pointer; vertical-align: middle; }
+.icon-choose { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* comparison editor: [left] — slider — [right], slider track shows the colours */
+.cs-cmp-edit { display: flex; align-items: center; gap: 10px; }
+.cs-cmp-left, .cs-cmp-right { flex: 1 1 70px; min-width: 64px; }
+.cs-cmp-right { text-align: right; }
+.cs-cmp-range { flex: 2 1 130px; min-width: 120px; -webkit-appearance: none; appearance: none; height: 16px; border-radius: 99px; border: 1px solid var(--border-2); padding: 0; cursor: pointer; }
+.cs-cmp-range::-webkit-slider-runnable-track { height: 16px; border-radius: 99px; background: transparent; }
+.cs-cmp-range::-moz-range-track { height: 16px; border-radius: 99px; background: transparent; }
+.cs-cmp-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #12151f; box-shadow: 0 0 0 1px rgba(0,0,0,.35); cursor: grab; }
+.cs-cmp-range::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid #12151f; cursor: grab; }
+.cs-cmp-colors { display: flex; gap: 18px; margin-top: 10px; flex-wrap: wrap; }
+.cs-cmp-colors .cs-mm { gap: 6px; }
+.cs-copy, .cs-paste { width: 24px; height: 24px; }
 
 /* At a Glance editor */
 .glance-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 10px; margin-bottom: 10px; }

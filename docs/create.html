@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=13">
+  <link rel="stylesheet" href="assets/css/styles.css?v=14">
 </head>
 <body>
   <header class="site-header">
@@ -52,33 +52,11 @@
             </div>
             <div>
               <div class="lbl" style="margin-bottom:8px">Icon</div>
-              <div class="tabs" id="icon-tabs">
-                <button type="button" class="tab active" data-tab="wow">WoW Icons</button>
-                <button type="button" class="tab" data-tab="svg">Simple</button>
-                <button type="button" class="tab" data-tab="none">Initials</button>
+              <div class="icon-choose">
+                <button type="button" class="btn btn-sm" id="choose-icon">🖼 Choose icon…</button>
+                <button type="button" class="btn btn-sm btn-ghost" id="clear-icon">Use initials</button>
               </div>
-
-              <div class="tab-panel" data-panel="wow" style="margin-top:12px">
-                <div class="wow-custom">
-                  <div class="thumb" id="wow-thumb">?</div>
-                  <input type="search" id="wow-name" placeholder="Search 30,000+ WoW icons — sword, fire, holy…  (or type an exact name + Enter)">
-                </div>
-                <div class="wow-help" style="margin-top:6px">
-                  Scroll to browse the full WoW icon library — it loads as you go. Or find an exact name on
-                  <a href="https://www.wowhead.com/icons" target="_blank" rel="noopener">wowhead.com/icons</a>.
-                </div>
-                <div class="wow-count" id="wow-count"></div>
-                <div class="icon-grid" id="wow-grid" style="margin-top:6px"></div>
-              </div>
-
-              <div class="tab-panel" data-panel="svg" hidden style="margin-top:12px">
-                <input type="search" id="icon-search" placeholder="Search icons — sword, fire, crown…">
-                <div class="icon-grid" id="icon-grid" style="margin-top:8px"></div>
-              </div>
-
-              <div class="tab-panel" data-panel="none" hidden style="margin-top:12px">
-                <div class="wow-help">Your character will show their initials on a colored tile.</div>
-              </div>
+              <div class="help" id="icon-current" style="margin-top:8px"></div>
             </div>
           </div>
         </div>
@@ -198,11 +176,11 @@
     </form>
   </main>
 
-  <script src="assets/js/icons.js?v=13"></script>
-  <script src="assets/js/store.js?v=13"></script>
-  <script src="assets/js/iconpicker.js?v=13"></script>
-  <script src="assets/js/reorder.js?v=13"></script>
-  <script src="assets/js/builder.js?v=13"></script>
+  <script src="assets/js/icons.js?v=14"></script>
+  <script src="assets/js/store.js?v=14"></script>
+  <script src="assets/js/iconpicker.js?v=14"></script>
+  <script src="assets/js/reorder.js?v=14"></script>
+  <script src="assets/js/builder.js?v=14"></script>
   <script>
     (function () {
       var form = document.getElementById("char-form");
@@ -213,14 +191,8 @@
       var kindInput = document.getElementById("iconKind");
       var iconInput = document.getElementById("icon");
       var preview = document.getElementById("preview-avatar");
-
       var sw = document.getElementById("swatches");
-      var tabs = document.getElementById("icon-tabs");
-      var wowName = document.getElementById("wow-name");
-      var wowThumb = document.getElementById("wow-thumb");
-      var wowGrid = document.getElementById("wow-grid");
-      var svgSearch = document.getElementById("icon-search");
-      var svgGrid = document.getElementById("icon-grid");
+      var iconCurrent = document.getElementById("icon-current");
 
       var editor = ARPO.createSectionsEditor(
         document.getElementById("sections"), document.getElementById("add-section"));
@@ -240,24 +212,11 @@
       function refreshPreview() {
         preview.setAttribute("style", ARPO.avatarStyle(draft()));
         preview.innerHTML = ARPO.avatarInner(draft(), 42);
+        iconCurrent.textContent = iconInput.value
+          ? ("Icon: " + iconInput.value + (kindInput.value === "wow" ? " (WoW)" : ""))
+          : "Using initials";
       }
 
-      function select(kind, val) {
-        kindInput.value = kind || "";
-        iconInput.value = val || "";
-        highlightGrids();
-        refreshPreview();
-      }
-      function highlightGrids() {
-        [].forEach.call(wowGrid.querySelectorAll(".wow-tile"), function (b) {
-          b.classList.toggle("sel", kindInput.value === "wow" && b.dataset.name === iconInput.value);
-        });
-        [].forEach.call(svgGrid.children, function (b) {
-          b.classList.toggle("sel", kindInput.value === "svg" && b.dataset.key === iconInput.value);
-        });
-      }
-
-      // ---- accent ----
       function paintSwatches() {
         sw.innerHTML = "";
         ARPO.ACCENTS.forEach(function (color) {
@@ -265,125 +224,19 @@
           b.type = "button";
           b.className = "swatch" + (color === accentInput.value ? " sel" : "");
           b.style.background = color; b.title = color;
-          b.addEventListener("click", function () {
-            accentInput.value = color; paintSwatches(); paintSvg(svgSearch.value); refreshPreview();
-          });
+          b.addEventListener("click", function () { accentInput.value = color; paintSwatches(); refreshPreview(); });
           sw.appendChild(b);
         });
       }
 
-      // ---- tabs ----
-      function showTab(name) {
-        [].forEach.call(tabs.children, function (t) { t.classList.toggle("active", t.dataset.tab === name); });
-        [].forEach.call(document.querySelectorAll(".tab-panel"), function (p) { p.hidden = p.dataset.panel !== name; });
-      }
-      tabs.addEventListener("click", function (e) {
-        var t = e.target.closest(".tab"); if (!t) return;
-        showTab(t.dataset.tab);
-        if (t.dataset.tab === "none") select("", "");
+      // One modal icon picker used everywhere (character, glances, custom items).
+      document.getElementById("choose-icon").addEventListener("click", function () {
+        ARPO.openIconPicker({ kind: kindInput.value, value: iconInput.value,
+          onPick: function (k, n) { kindInput.value = k; iconInput.value = n; refreshPreview(); } });
       });
-
-      // ---- WoW icons: lazy, fade-in, infinite-scroll grid over the full library ----
-      var wowCountEl = document.getElementById("wow-count");
-      var WOW_BATCH = 90;
-      var wowMaster = ARPO.WOW_ICONS.slice();   // curated fallback until the full list loads
-      var wowFiltered = wowMaster, wowShown = 0, wowSentinel = null, wowObserver = null;
-
-      function paintWowThumb() {
-        var n = (kindInput.value === "wow" ? iconInput.value : "").trim();
-        if (!n) { wowThumb.textContent = "?"; return; }
-        wowThumb.innerHTML = '<img alt="" src="' + ARPO.wowIconUrl(n) +
-          '" onerror="this.parentNode.textContent=\'?\'">';
-      }
-
-      function wowTile(name) {
-        var b = document.createElement("button");
-        b.type = "button";
-        b.className = "icon-opt wow-tile" + (kindInput.value === "wow" && iconInput.value === name ? " sel" : "");
-        b.dataset.name = name; b.title = name;
-        var img = document.createElement("img");
-        img.alt = ""; img.loading = "lazy";
-        img.addEventListener("load", function () { img.classList.add("loaded"); });
-        img.addEventListener("error", function () { b.style.display = "none"; });
-        img.src = ARPO.wowIconUrl(name, "medium");
-        b.appendChild(img);
-        b.addEventListener("click", function () { select("wow", name); paintWowThumb(); });
-        return b;
-      }
-      function updateWowCount() {
-        if (!wowCountEl) return;
-        wowCountEl.textContent = wowFiltered.length
-          ? (wowShown < wowFiltered.length ? "Showing " + wowShown + " of " + wowFiltered.length.toLocaleString() + " icons — scroll for more"
-                                           : wowFiltered.length.toLocaleString() + " icons")
-          : "No icons match your search.";
-      }
-      function appendWowBatch() {
-        var end = Math.min(wowShown + WOW_BATCH, wowFiltered.length);
-        var frag = document.createDocumentFragment();
-        for (var i = wowShown; i < end; i++) frag.appendChild(wowTile(wowFiltered[i]));
-        wowShown = end;
-        wowGrid.insertBefore(frag, wowSentinel);
-        updateWowCount();
-        if (wowShown >= wowFiltered.length && wowObserver) wowObserver.unobserve(wowSentinel);
-      }
-      function resetWowGrid(filter) {
-        filter = (filter || "").trim().toLowerCase();
-        wowFiltered = filter ? wowMaster.filter(function (n) { return n.indexOf(filter) !== -1; }) : wowMaster;
-        wowGrid.innerHTML = "";
-        wowShown = 0;
-        wowSentinel = document.createElement("div");
-        wowSentinel.className = "wow-sentinel";
-        wowGrid.appendChild(wowSentinel);
-        if (!wowObserver) {
-          wowObserver = new IntersectionObserver(function (entries) {
-            entries.forEach(function (e) { if (e.isIntersecting) appendWowBatch(); });
-          }, { root: wowGrid, rootMargin: "250px" });
-        }
-        wowObserver.observe(wowSentinel);
-        appendWowBatch();
-      }
-
-      var wowFilterTimer;
-      wowName.addEventListener("input", function () {
-        clearTimeout(wowFilterTimer);
-        wowFilterTimer = setTimeout(function () { resetWowGrid(wowName.value); }, 160);
+      document.getElementById("clear-icon").addEventListener("click", function () {
+        kindInput.value = ""; iconInput.value = ""; refreshPreview();
       });
-      wowName.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          var n = wowName.value.trim().toLowerCase();
-          if (n) { select("wow", n); paintWowThumb(); }
-        }
-      });
-
-      // Load the full icon library (bundled, shared with the modal picker).
-      ARPO.loadWowLibrary().then(function (list) {
-        if (list && list.length) { wowMaster = list; resetWowGrid(wowName.value); }
-      });
-
-      // ---- Simple (SVG) icons ----
-      function paintSvg(filter) {
-        filter = (filter || "").trim().toLowerCase();
-        svgGrid.innerHTML = "";
-        var matches = ARPO.ICONS.filter(function (i) {
-          return !filter || i.key.indexOf(filter) !== -1 || i.label.indexOf(filter) !== -1;
-        });
-        matches.forEach(function (i) {
-          var b = document.createElement("button");
-          b.type = "button"; b.className = "icon-opt"; b.dataset.key = i.key; b.title = i.key;
-          b.style.color = accentInput.value;
-          b.innerHTML = ARPO.iconSVG(i.key, { size: 24 });
-          b.addEventListener("click", function () { select("svg", i.key); });
-          svgGrid.appendChild(b);
-        });
-        if (!matches.length) {
-          var e = document.createElement("div");
-          e.className = "icon-empty"; e.textContent = 'No icons match “' + filter + '”.';
-          svgGrid.appendChild(e);
-        }
-        highlightGrids();
-      }
-      svgSearch.addEventListener("input", function () { paintSvg(svgSearch.value); });
 
       form.elements.firstName.addEventListener("input", refreshPreview);
       form.elements.lastName.addEventListener("input", refreshPreview);
@@ -412,14 +265,7 @@
 
       // ---- init ----
       paintSwatches();
-      resetWowGrid("");
-      paintWowThumb();
-      paintSvg("");
       if (!document.querySelector("#glances .glance-row")) glanceEditor.load([]);
-      if (kindInput.value === "wow") { showTab("wow"); }
-      else if (kindInput.value === "svg" && iconInput.value) { showTab("svg"); }
-      else if (!iconInput.value) { showTab("wow"); }
-      highlightGrids();
       refreshPreview();
 
       form.addEventListener("submit", function (e) {

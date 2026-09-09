@@ -22,7 +22,8 @@
     return '<div class="cs-item-head">' +
       ARPO.dragHandle("cs-item-handle") +
       '<span class="cs-type"></span><span class="spacer"></span>' +
-      '<button type="button" class="cs-mini danger" data-mv="del" title="Remove">✕</button>' +
+      '<button type="button" class="cs-mini" data-mv="dup" title="Duplicate row" aria-label="Duplicate row" tabindex="-1">⧉</button>' +
+      '<button type="button" class="cs-mini danger" data-mv="del" title="Remove" aria-label="Remove" tabindex="-1">✕</button>' +
       "</div>";
   }
 
@@ -51,15 +52,18 @@
       var ch = d.colorHigh || "#27ae60", cl = d.colorLow || "#c0392b";
       var cv = d.value != null ? d.value : 50;
       body =
-        '<div class="cs-cmp-row">' +
-          '<input class="cs-f" data-k="left" placeholder="Left — e.g. Brave" value="' + esc(d.left || "") + '">' +
-          '<input class="cs-f" data-k="right" placeholder="Right — e.g. Coward" value="' + esc(d.right || "") + '">' +
+        '<div class="cs-cmp-edit">' +
+          '<input class="cs-f cs-cmp-left" data-k="left" placeholder="Left — e.g. Brave" value="' + esc(d.left || "") + '">' +
+          '<input class="cs-f cs-cmp-range" data-k="value" type="range" min="0" max="100" value="' + esc(cv) + '">' +
+          '<input class="cs-f cs-cmp-right" data-k="right" placeholder="Right — e.g. Coward" value="' + esc(d.right || "") + '">' +
         "</div>" +
-        '<div class="cs-slider-edit">' +
-          '<input class="cs-f cs-range" data-k="value" type="range" min="0" max="100" value="' + esc(cv) + '">' +
-          '<span class="cs-val">' + esc(cv) + "</span>" +
-          '<label class="cs-mm">greater<input class="cs-f cs-color" data-k="colorHigh" type="color" value="' + esc(ch) + '"></label>' +
-          '<label class="cs-mm">lesser<input class="cs-f cs-color" data-k="colorLow" type="color" value="' + esc(cl) + '"></label>' +
+        '<div class="cs-cmp-colors">' +
+          '<label class="cs-mm">Greater side <input class="cs-f cs-color" data-k="colorHigh" type="color" value="' + esc(ch) + '">' +
+            '<button type="button" class="cs-mini cs-copy" title="Copy color" aria-label="Copy color" tabindex="-1">⧉</button>' +
+            '<button type="button" class="cs-mini cs-paste" title="Paste color" aria-label="Paste color" tabindex="-1">⇩</button></label>' +
+          '<label class="cs-mm">Lesser side <input class="cs-f cs-color" data-k="colorLow" type="color" value="' + esc(cl) + '">' +
+            '<button type="button" class="cs-mini cs-copy" title="Copy color" aria-label="Copy color" tabindex="-1">⧉</button>' +
+            '<button type="button" class="cs-mini cs-paste" title="Paste color" aria-label="Paste color" tabindex="-1">⇩</button></label>' +
         "</div>";
     } else if (type === "link" || type === "button") {
       body =
@@ -85,7 +89,34 @@
     row.innerHTML = head() + '<div class="cs-item-body">' + body + "</div>";
     row.querySelector(".cs-type").textContent = TYPE_LABEL[type] || type;
     if (type === "icon") updateIconPreview(row);
+    if (type === "comparison") updateCmp(row);
     return row;
+  }
+
+  // Colour the comparison slider track by the greater/lesser side so the
+  // balance is obvious (replaces the browser's default blue/white slider).
+  function updateCmp(row) {
+    var range = row.querySelector(".cs-cmp-range");
+    if (!range) return;
+    var v = Math.max(0, Math.min(100, Number(range.value) || 0));
+    var high = (row.querySelector('[data-k="colorHigh"]') || {}).value || "#27ae60";
+    var low = (row.querySelector('[data-k="colorLow"]') || {}).value || "#c0392b";
+    var leftPct = 100 - v, rightPct = v;
+    var leftColor = leftPct >= rightPct ? high : low;
+    var rightColor = rightPct > leftPct ? high : low;
+    range.style.background = "linear-gradient(to right," + leftColor + " 0%," + leftColor + " " +
+      leftPct + "%," + rightColor + " " + leftPct + "%," + rightColor + " 100%)";
+  }
+
+  // Read a single item's data (used to duplicate it).
+  function readItem(it) {
+    var obj = { type: it.dataset.type };
+    [].forEach.call(it.querySelectorAll(".cs-f"), function (f) {
+      var val = f.value;
+      if (f.type === "number" || f.type === "range") val = val === "" ? null : Number(val);
+      obj[f.dataset.k] = typeof val === "string" ? val.trim() : val;
+    });
+    return obj;
   }
 
   function updateIconPreview(row) {
@@ -148,12 +179,27 @@
       }
     });
 
-    // clicks: delete item / delete section / icon pick
+    // clicks: duplicate/delete item, delete section, icon pick, color copy/paste
     container.addEventListener("click", function (e) {
-      var mv = e.target.closest('[data-mv="del"]');
-      if (mv) { mv.closest(".cs-item").remove(); return; }
+      var mv = e.target.closest("[data-mv]");
+      if (mv) {
+        var item = mv.closest(".cs-item");
+        if (mv.dataset.mv === "del") item.remove();
+        else if (mv.dataset.mv === "dup") {
+          var copy = makeItem(item.dataset.type, readItem(item));
+          item.parentNode.insertBefore(copy, item.nextElementSibling);
+        }
+        return;
+      }
       var sv = e.target.closest('[data-sv="del"]');
       if (sv) { sv.closest(".cs-section").remove(); return; }
+      var cp = e.target.closest(".cs-copy");
+      if (cp) { ARPO._colorClip = cp.parentNode.querySelector(".cs-color").value; ARPO.toast("Color copied"); return; }
+      var ps = e.target.closest(".cs-paste");
+      if (ps && ARPO._colorClip) {
+        var inp = ps.parentNode.querySelector(".cs-color");
+        inp.value = ARPO._colorClip; updateCmp(ps.closest(".cs-item")); ARPO.toast("Color pasted"); return;
+      }
       var pk = e.target.closest(".cs-icon-pick");
       if (pk) { openPickerFor(pk.closest(".cs-item")); return; }
     });
@@ -170,6 +216,9 @@
         if (min !== "") range.min = min;
         if (max !== "") range.max = max;
         edit.querySelector(".cs-val").textContent = range.value;
+      } else if (f.classList.contains("cs-cmp-range") ||
+                 (f.classList.contains("cs-color") && f.closest(".cs-item") && f.closest(".cs-item").dataset.type === "comparison")) {
+        updateCmp(f.closest(".cs-item"));
       } else if (f.closest(".cs-item") && f.closest(".cs-item").dataset.type === "image" && f.dataset.k === "url") {
         var prev = f.closest(".cs-item").querySelector(".cs-img-prev");
         if (f.value.trim()) { prev.hidden = false; prev.innerHTML = '<img alt="" src="' + esc(f.value.trim()) + '" onerror="this.style.display=\'none\'">'; }
