@@ -10,6 +10,7 @@
   var TYPES = [
     { v: "text", label: "Text" },
     { v: "slider", label: "Slider" },
+    { v: "comparison", label: "Comparison" },
     { v: "link", label: "Link" },
     { v: "button", label: "Button" },
     { v: "icon", label: "Icon" },
@@ -46,6 +47,20 @@
           '<span class="cs-val">' + esc(val) + "</span>" +
           '<label class="cs-mm">min<input class="cs-f cs-num" data-k="min" type="number" value="' + esc(min) + '"></label>' +
           '<label class="cs-mm">max<input class="cs-f cs-num" data-k="max" type="number" value="' + esc(max) + '"></label>' +
+        "</div>";
+    } else if (type === "comparison") {
+      var ch = d.colorHigh || "#27ae60", cl = d.colorLow || "#c0392b";
+      var cv = d.value != null ? d.value : 50;
+      body =
+        '<div class="cs-cmp-row">' +
+          '<input class="cs-f" data-k="left" placeholder="Left — e.g. Brave" value="' + esc(d.left || "") + '">' +
+          '<input class="cs-f" data-k="right" placeholder="Right — e.g. Coward" value="' + esc(d.right || "") + '">' +
+        "</div>" +
+        '<div class="cs-slider-edit">' +
+          '<input class="cs-f cs-range" data-k="value" type="range" min="0" max="100" value="' + esc(cv) + '">' +
+          '<span class="cs-val">' + esc(cv) + "</span>" +
+          '<label class="cs-mm">greater<input class="cs-f cs-color" data-k="colorHigh" type="color" value="' + esc(ch) + '"></label>' +
+          '<label class="cs-mm">lesser<input class="cs-f cs-color" data-k="colorLow" type="color" value="' + esc(cl) + '"></label>' +
         "</div>";
     } else if (type === "link" || type === "button") {
       body =
@@ -196,6 +211,7 @@
     function meaningful(it) {
       if (it.type === "text") return !!(it.value || it.label);
       if (it.type === "slider") return !!it.label || it.value != null;
+      if (it.type === "comparison") return !!(it.left || it.right);
       if (it.type === "link" || it.type === "button" || it.type === "image") return !!it.url;
       if (it.type === "icon") return !!it.icon || !!it.label;
       return true;
@@ -226,5 +242,80 @@
     }
 
     return { serialize: serialize, load: load, addSection: addSection };
+  };
+
+  // ---- At a Glance editor (icon + short note; 3 shown, up to 10) ----------
+  function makeGlance(d) {
+    d = d || {};
+    var row = document.createElement("div");
+    row.className = "glance-row";
+    row.innerHTML =
+      '<div class="g-icon">' +
+        '<div class="cs-icon-prev" data-prev></div>' +
+        '<input class="g-f g-name" data-k="icon" placeholder="Icon name (WoW)" value="' + esc(d.icon || "") + '">' +
+        '<input type="hidden" class="g-f" data-k="iconKind" value="' + esc(d.iconKind || "wow") + '">' +
+        '<button type="button" class="btn btn-sm cs-icon-browse">▾ Pick</button>' +
+      "</div>" +
+      '<input class="g-f g-text" data-k="text" placeholder="What they\'d notice — e.g. A jagged scar across one eye" value="' + esc(d.text || "") + '">' +
+      '<button type="button" class="cs-mini danger" data-g="del" title="Remove">✕</button>' +
+      '<div class="cs-icon-grid" hidden></div>';
+    updateIconPreview(row);
+    return row;
+  }
+
+  ARPO.createGlanceEditor = function (container, addButton) {
+    var MAX = 10;
+    function count() { return container.querySelectorAll(".glance-row").length; }
+    function syncAdd() {
+      if (!addButton) return;
+      var full = count() >= MAX;
+      addButton.disabled = full;
+      addButton.textContent = full ? "Maximum of 10 reached" : "＋ Add glance";
+    }
+    function addRow(d) { if (count() >= MAX) return; container.appendChild(makeGlance(d)); syncAdd(); }
+
+    if (addButton) addButton.addEventListener("click", function () { addRow(); });
+
+    container.addEventListener("click", function (e) {
+      var del = e.target.closest('[data-g="del"]');
+      if (del) { del.closest(".glance-row").remove(); syncAdd(); return; }
+      var browse = e.target.closest(".cs-icon-browse");
+      if (browse) {
+        var grid = browse.closest(".glance-row").querySelector(".cs-icon-grid");
+        fillIconGrid(grid); grid.hidden = !grid.hidden; return;
+      }
+      var pick = e.target.closest(".cs-ig");
+      if (pick) {
+        var row = pick.closest(".glance-row");
+        row.querySelector('[data-k="icon"]').value = pick.dataset.name;
+        row.querySelector('[data-k="iconKind"]').value = pick.dataset.kind;
+        row.querySelector(".cs-icon-grid").hidden = true;
+        updateIconPreview(row);
+      }
+    });
+    container.addEventListener("input", function (e) {
+      if (e.target.dataset.k === "icon") {
+        var row = e.target.closest(".glance-row");
+        row.querySelector('[data-k="iconKind"]').value = ARPO.ICON_MAP[e.target.value.trim()] ? "svg" : "wow";
+        updateIconPreview(row);
+      }
+    });
+
+    function serialize() {
+      var out = [];
+      [].forEach.call(container.querySelectorAll(".glance-row"), function (row) {
+        var o = {};
+        [].forEach.call(row.querySelectorAll(".g-f"), function (f) { o[f.dataset.k] = f.value.trim ? f.value.trim() : f.value; });
+        if (o.text || o.icon) out.push({ icon: o.icon || "", iconKind: o.iconKind || "wow", text: o.text || "" });
+      });
+      return out;
+    }
+    function load(glances) {
+      container.innerHTML = "";
+      (glances && glances.length ? glances : []).forEach(function (g) { addRow(g); });
+      while (count() < 3) addRow();   // always show at least 3 slots
+      syncAdd();
+    }
+    return { serialize: serialize, load: load };
   };
 })();

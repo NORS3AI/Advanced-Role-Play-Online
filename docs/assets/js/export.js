@@ -40,6 +40,21 @@
         '</span><span class="cs-num">' + esc(val) + " / " + esc(max) + "</span></div>" +
         '<div class="cs-bar"><div class="cs-fill" style="width:' + pct + '%"></div></div></div>';
     }
+    if (it.type === "comparison") {
+      var left = esc(it.left || ""), right = esc(it.right || "");
+      if (!left && !right) return "";
+      var cv = Number(it.value != null ? it.value : 50);
+      cv = Math.max(0, Math.min(100, isNaN(cv) ? 50 : cv));
+      var leftPct = 100 - cv, rightPct = cv;
+      var high = it.colorHigh || "#27ae60", low = it.colorLow || "#c0392b";
+      var leftColor = leftPct >= rightPct ? high : low;
+      var rightColor = rightPct > leftPct ? high : low;
+      return '<div class="cs-cmp"><div class="cs-cmp-head"><span>' + left + "</span><span>" + right + "</span></div>" +
+        '<div class="cs-cmp-bar">' +
+          '<span style="width:' + leftPct + '%;background:' + esc(leftColor) + '"></span>' +
+          '<span style="width:' + rightPct + '%;background:' + esc(rightColor) + '"></span>' +
+        "</div></div>";
+    }
     if (it.type === "link") {
       if (!it.url) return "";
       return '<p class="cs-link">🔗 <a href="' + esc(it.url) + '" target="_blank" rel="noopener noreferrer">' +
@@ -63,6 +78,31 @@
     }
     return "";
   }
+  // Guild & Social block (rendered above Currently).
+  function renderGuild(c) {
+    if (!c.guildName && !c.guildRank && !c.guildInfo) return "";
+    var line = "";
+    if (c.guildName || c.guildRank) {
+      line = '<p class="guild-line">' +
+        (c.guildName ? "<strong>" + esc(c.guildName) + "</strong>" : "") +
+        (c.guildRank ? '<span class="rank"> ' + (c.guildName ? "— " : "") + esc(c.guildRank) + "</span>" : "") +
+        "</p>";
+    }
+    return "<h3>Guild &amp; Social</h3>" + line + (c.guildInfo ? '<p class="text">' + esc(c.guildInfo) + "</p>" : "");
+  }
+  ARPO.renderGuild = renderGuild;
+
+  // "At a Glance" strip (rendered after Currently).
+  function renderGlances(c, forExport) {
+    var g = (c.glances || []).filter(function (x) { return x.text || x.icon; });
+    if (!g.length) return "";
+    return '<h3>At a Glance</h3><div class="glances">' + g.map(function (x) {
+      var ic = ARPO.inlineIcon(x.iconKind, x.icon, 28, forExport);
+      return '<div class="glance"><span class="cs-ic">' + ic + '</span><span class="g-txt">' + esc(x.text || "") + "</span></div>";
+    }).join("") + "</div>";
+  }
+  ARPO.renderGlances = renderGlances;
+
   ARPO.renderCustomSections = function (c, forExport) {
     var secs = (c && c.customSections) || [];
     if (!secs.length) return "";
@@ -73,6 +113,23 @@
     }).join("");
   };
 
+  function wordGuild(c, accent) {
+    if (!c.guildName && !c.guildRank && !c.guildInfo) return "";
+    var h = '<h2 style="color:' + accent + ';font-family:Georgia,serif;margin:16px 0 4px">Guild &amp; Social</h2>';
+    var line = (c.guildName || c.guildRank)
+      ? '<p style="margin:0 0 6px">' + (c.guildName ? "<b>" + esc(c.guildName) + "</b>" : "") + (c.guildRank ? " — " + esc(c.guildRank) : "") + "</p>" : "";
+    return h + line + (c.guildInfo ? '<p style="margin:0 0 8px">' + esc(c.guildInfo).replace(/\n/g, "<br>") + "</p>" : "");
+  }
+  function wordGlances(c, accent) {
+    var g = (c.glances || []).filter(function (x) { return x.text || x.icon; });
+    if (!g.length) return "";
+    var rows = g.map(function (x) {
+      var img = x.iconKind === "wow" && x.icon ? '<img src="' + esc(ARPO.wowIconUrl(x.icon)) + '" width="18" height="18"> ' : "";
+      return "<li>" + img + esc(x.text || "") + "</li>";
+    }).join("");
+    return '<h2 style="color:' + accent + ';font-family:Georgia,serif;margin:16px 0 4px">At a Glance</h2><ul style="margin:0 0 8px">' + rows + "</ul>";
+  }
+
   // Word (.doc) rendering of custom sections.
   function wordCustom(c, accent) {
     var secs = (c && c.customSections) || [];
@@ -82,6 +139,7 @@
         var lbl = it.label ? esc(it.label) : "";
         if (it.type === "text") return (lbl ? "<p><b>" + lbl + "</b></p>" : "") + (it.value ? '<p style="margin:0 0 8px">' + esc(it.value).replace(/\n/g, "<br>") + "</p>" : "");
         if (it.type === "slider") return '<p style="margin:0 0 6px">' + (lbl ? "<b>" + lbl + ":</b> " : "") + esc(it.value != null ? it.value : "") + " / " + esc(it.max != null ? it.max : 100) + "</p>";
+        if (it.type === "comparison") { var l = esc(it.left || ""), r = esc(it.right || ""), v = Number(it.value != null ? it.value : 50); return (l || r) ? '<p style="margin:0 0 6px">' + l + " " + (100 - v) + " — " + v + " " + r + "</p>" : ""; }
         if (it.type === "link" || it.type === "button") return it.url ? '<p style="margin:0 0 6px"><a href="' + esc(it.url) + '">' + (lbl || esc(it.url)) + "</a></p>" : "";
         if (it.type === "icon") {
           var img = it.iconKind === "wow" && it.icon ? '<img src="' + esc(ARPO.wowIconUrl(it.icon)) + '" width="20" height="20"> ' : "";
@@ -122,7 +180,9 @@
         section("Physical Description", c.physical) +
         section("Personality", c.personality) +
         section("History", c.history) +
+        renderGuild(c) +
         (c.currently ? section("Currently", c.currently) : "") +
+        renderGlances(c, forExport) +
         ARPO.renderCustomSections(c, forExport) +
       "</div>" +
       '<div class="foot"><span>Advanced Role Play Online</span>' + status + "</div>";
@@ -223,7 +283,9 @@
         block("Physical Description", c.physical) +
         block("Personality", c.personality) +
         block("History", c.history) +
+        wordGuild(c, accent) +
         block("Currently", c.currently) +
+        wordGlances(c, accent) +
         wordCustom(c, accent) +
         '<hr><div style="color:#999;font-size:12px">Advanced Role Play Online &middot; ' +
           (c.rpStatus === "ic" ? "In Character" : "Out of Character") + "</div>" +

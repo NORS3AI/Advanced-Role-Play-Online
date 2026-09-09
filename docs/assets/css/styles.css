@@ -242,7 +242,7 @@ textarea { min-height: 92px; }
 .icon-tools .lbl { color: var(--muted); font-size: .85rem; }
 .icon-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px;
-  max-height: 224px; overflow-y: auto; padding: 8px;
+  max-height: 420px; overflow-y: auto; padding: 8px;
   border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg);
 }
 .icon-opt {
@@ -360,6 +360,17 @@ textarea { min-height: 92px; }
 .cs-ig img { width: 100%; height: 100%; object-fit: cover; }
 .cs-img-prev { max-width: 220px; border: 1px solid var(--border-2); border-radius: 8px; overflow: hidden; }
 .cs-img-prev img { display: block; width: 100%; }
+.cs-color { width: 40px; height: 28px; padding: 0; border: 1px solid var(--border-2); border-radius: 6px; background: var(--bg); cursor: pointer; }
+.cs-cmp-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.cs-cmp-row input { flex: 1; min-width: 120px; }
+
+/* At a Glance editor */
+.glance-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); padding: 10px; margin-bottom: 10px; }
+.glance-row .g-icon { display: flex; align-items: center; gap: 8px; }
+.glance-row .g-text { flex: 1; min-width: 200px; }
+.glance-row .cs-icon-prev { width: 38px; height: 38px; }
+.glance-row .g-name { width: 190px; }
+.glance-row .cs-icon-grid { flex-basis: 100%; }
 
 /* ---- Custom sections: rendered on the sheet / profile ------------------ */
 .cs-h { color: #cfd4e0; font-size: .98rem; margin: 12px 0 2px; }
@@ -378,6 +389,24 @@ textarea { min-height: 92px; }
 .cs-image img { max-width: 100%; border-radius: 10px; border: 1px solid #2a3243; display: block; }
 .cs-image figcaption { color: #99a2b8; font-size: .82rem; margin-top: 4px; }
 .ci-img { width: 100%; height: 100%; object-fit: cover; }
+
+/* comparison bar */
+.cs-cmp { margin: 10px 0 14px; }
+.cs-cmp-head { display: flex; justify-content: space-between; color: #cfd4e0; font-size: .9rem; margin-bottom: 5px; }
+.cs-cmp-bar { display: flex; height: 12px; border-radius: 99px; overflow: hidden; border: 1px solid #2a3243; }
+.cs-cmp-bar span { display: block; height: 100%; }
+
+/* guild line + At a Glance chips (on the sheet/profile) */
+.guild-line { color: #cfd4e0; margin: 2px 0 6px; }
+.guild-line .rank { color: #d4af6a; }
+.glances { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 4px; }
+.glance {
+  display: flex; align-items: center; gap: 9px; padding: 8px 12px 8px 8px;
+  background: #1b2130; border: 1px solid #2a3243; border-radius: 10px; max-width: 100%;
+}
+.glance .cs-ic { width: 28px; height: 28px; }
+.glance .cs-ic img, .glance .cs-ic svg { width: 28px; height: 28px; border-radius: 6px; }
+.glance .g-txt { color: #ece7db; font-size: .9rem; }
 
 /* ---- Share row --------------------------------------------------------- */
 .share-row { width: 720px; max-width: 100%; display: flex; gap: 8px; }

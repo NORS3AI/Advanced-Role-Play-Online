@@ -97,7 +97,33 @@
     "achievement_character_orc_male", "achievement_character_undead_male",
     "achievement_character_tauren_male", "achievement_character_troll_male",
     "achievement_character_bloodelf_female", "achievement_character_pandaren_male",
-    "achievement_character_worgen_male", "achievement_character_goblin_male"
+    "achievement_character_worgen_male", "achievement_character_goblin_male",
+    // More weapons & combat
+    "inv_sword_62", "inv_axe_09", "inv_mace_25", "inv_weapon_halberd_06",
+    "inv_weapon_crossbow_02", "inv_throwingknife_04", "ability_backstab",
+    "ability_parry", "ability_warrior_rampage", "ability_warrior_shieldbash",
+    "ability_rogue_ambush", "ability_hunter_snipershot",
+    // More magic
+    "spell_holy_layonhands", "spell_holy_renew", "spell_holy_sealofmight",
+    "spell_fire_immolation", "spell_fire_flameshock", "spell_frost_frostshock",
+    "spell_frost_wizardmark", "spell_nature_earthbind", "spell_nature_polymorph",
+    "spell_nature_wispsplode", "spell_shadow_summoninfernal", "spell_shadow_metamorphosis",
+    "spell_shadow_lifedrain", "spell_arcane_teleportstormwind", "spell_holy_prayerofhealing",
+    // Professions & tradeskills
+    "trade_alchemy", "trade_blacksmithing", "trade_engineering", "trade_tailoring",
+    "trade_leatherworking", "trade_mining", "inv_misc_herb_07", "inv_fishingpole_02",
+    // Items & theme
+    "inv_misc_map_01", "inv_misc_spyglass_02", "inv_misc_pocketwatch_01",
+    "inv_letter_15", "inv_misc_rune_01", "inv_jewelry_talisman_05",
+    "inv_misc_coin_01", "inv_misc_key_11", "inv_misc_gem_emerald_02",
+    "inv_misc_gem_sapphire_02", "inv_drink_16", "inv_misc_food_15",
+    "ability_hunter_pet_cat", "ability_hunter_pet_bear", "ability_mount_nightmarehorse",
+    // More race portraits
+    "achievement_character_nightelf_male",
+    "achievement_character_dwarf_female", "achievement_character_gnome_female",
+    "achievement_character_draenei_female", "achievement_character_orc_female",
+    "achievement_character_tauren_female", "achievement_character_troll_female",
+    "achievement_character_undead_female", "achievement_character_bloodelf_male"
   ];
 
   ARPO.iconSVG = function (key, opts) {

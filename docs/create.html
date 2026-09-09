@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/styles.css?v=9">
 </head>
 <body>
   <header class="site-header">
@@ -149,6 +149,15 @@
       </fieldset>
 
       <fieldset>
+        <legend>Guild &amp; Social</legend>
+        <div class="fields">
+          <div class="field"><label for="guildName">Guild name</label><input id="guildName" name="guildName" placeholder="The Silver Hand"></div>
+          <div class="field"><label for="guildRank">Guild rank</label><input id="guildRank" name="guildRank" placeholder="Knight-Lieutenant"></div>
+          <div class="field full"><label for="guildInfo">Guild information (for RP)</label><textarea id="guildInfo" name="guildInfo" placeholder="The character's standing, duties, allegiances, and story within the guild…"></textarea></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend>Currently</legend>
         <div class="fields">
           <div class="field">
@@ -166,8 +175,15 @@
       </fieldset>
 
       <fieldset>
+        <legend>At a Glance</legend>
+        <p class="help" style="margin:-4px 0 6px">Quick things someone would notice — an icon and a short note. Up to 10.</p>
+        <div id="glances"></div>
+        <button type="button" class="btn btn-sm" id="add-glance">＋ Add glance</button>
+      </fieldset>
+
+      <fieldset>
         <legend>Custom Sections</legend>
-        <p class="help" style="margin:-4px 0 6px">Add your own sections with text, sliders, links, buttons, icons, and images.</p>
+        <p class="help" style="margin:-4px 0 6px">Add your own sections with text, sliders, comparisons, links, buttons, icons, and images.</p>
         <div id="sections"></div>
         <button type="button" class="btn btn-sm" id="add-section">＋ Add section</button>
       </fieldset>
@@ -179,9 +195,9 @@
     </form>
   </main>
 
-  <script src="assets/js/icons.js"></script>
-  <script src="assets/js/store.js"></script>
-  <script src="assets/js/builder.js"></script>
+  <script src="assets/js/icons.js?v=9"></script>
+  <script src="assets/js/store.js?v=9"></script>
+  <script src="assets/js/builder.js?v=9"></script>
   <script>
     (function () {
       var form = document.getElementById("char-form");
@@ -203,6 +219,8 @@
 
       var editor = ARPO.createSectionsEditor(
         document.getElementById("sections"), document.getElementById("add-section"));
+      var glanceEditor = ARPO.createGlanceEditor(
+        document.getElementById("glances"), document.getElementById("add-glance"));
 
       function draft() {
         return {
@@ -329,6 +347,7 @@
           kindInput.value = c.iconKind || (c.icon ? "svg" : "");
           iconInput.value = c.icon || "";
           editor.load(c.customSections || []);
+          glanceEditor.load(c.glances || []);
         }
       }
 
@@ -336,6 +355,7 @@
       paintSwatches();
       paintWowGrid();
       paintSvg("");
+      if (!document.querySelector("#glances .glance-row")) glanceEditor.load([]);
       if (kindInput.value === "wow") { wowName.value = iconInput.value; paintWowThumb(); showTab("wow"); }
       else if (kindInput.value === "svg" && iconInput.value) { showTab("svg"); }
       else if (!iconInput.value) { showTab("wow"); }
@@ -353,6 +373,8 @@
         if (!data.icon) data.iconKind = "";
         var sections = editor.serialize();
         if (sections.length) data.customSections = sections; else delete data.customSections;
+        var glances = glanceEditor.serialize();
+        if (glances.length) data.glances = glances; else delete data.glances;
         if (!data.id) delete data.id;
         ARPO.upsert(data);
         location.href = "manage.html";
