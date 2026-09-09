@@ -71,18 +71,44 @@
 
     [].forEach.call(wrap.querySelectorAll("fieldset[data-section]"), function (fs) {
       var legend = fs.querySelector("legend");
-      if (legend && !legend.querySelector(".sec-handle")) legend.insertAdjacentHTML("beforeend", ARPO.dragHandle("sec-handle"));
+      if (legend && !legend.querySelector(".sec-ctrls")) {
+        legend.insertAdjacentHTML("afterbegin",
+          '<button type="button" class="cs-mini sec-collapse" tabindex="-1" aria-label="Collapse section">▾</button>');
+        legend.insertAdjacentHTML("beforeend",
+          '<span class="sec-ctrls">' + ARPO.dragHandle("sec-handle") +
+          '<button type="button" class="cs-mini danger sec-remove" tabindex="-1" title="Remove section" aria-label="Remove section">✕</button></span>');
+      }
       var cont = fs.querySelector(".fields");
       if (cont) {
         [].forEach.call(cont.querySelectorAll(".field"), function (field) {
           var ctrl = field.querySelector("input, select, textarea");
           if (ctrl && ctrl.name && !field.dataset.field) field.dataset.field = ctrl.name;
-          if (!field.querySelector(".fld-handle")) field.insertAdjacentHTML("afterbegin", ARPO.dragHandle("fld-handle"));
+          if (!field.querySelector(".fld-ctrls")) {
+            field.insertAdjacentHTML("afterbegin",
+              '<span class="fld-ctrls">' + ARPO.dragHandle("fld-handle") +
+              '<button type="button" class="cs-mini danger fld-remove" tabindex="-1" title="Remove" aria-label="Remove field">✕</button></span>');
+          }
         });
         ARPO.sortable(cont, { item: ".field", handle: ".fld-handle" });
       }
     });
     ARPO.sortable(wrap, { item: "fieldset[data-section]", handle: ".sec-handle" });
+
+    // collapse / remove controls
+    wrap.addEventListener("click", function (e) {
+      var cc = e.target.closest(".sec-collapse");
+      if (cc) {
+        e.preventDefault();
+        var fs = cc.closest("fieldset");
+        var collapsed = fs.classList.toggle("collapsed");
+        cc.textContent = collapsed ? "▸" : "▾";
+        return;
+      }
+      var sr = e.target.closest(".sec-remove");
+      if (sr) { e.preventDefault(); sr.closest("fieldset").remove(); return; }
+      var fr = e.target.closest(".fld-remove");
+      if (fr) { e.preventDefault(); fr.closest(".field").remove(); return; }
+    });
 
     return {
       apply: function (sectionOrder, fieldOrder) {
