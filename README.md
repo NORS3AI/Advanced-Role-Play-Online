@@ -27,9 +27,10 @@ generic so it can grow to other games, tabletop settings, and original worlds.
 - **Landing page** with a quick choice: **Create a Character** or **Manage
   Characters**.
 - **Create / edit** a character with a friendly, TRP3-inspired form:
-  - **Portrait** — accent color plus an icon. Choose an authentic **WoW icon**
-    (any icon by name from Wowhead's library, or a curated starter grid), a
-    bundled **Simple** icon, or plain **Initials**. Live preview.
+  - **Portrait** — accent color plus an icon. Browse the **full WoW icon
+    library** (~33,000 icons) in a Pinterest-style grid that lazy-loads and
+    fades images in as you scroll, with search; or type an exact Wowhead icon
+    name, pick a bundled **Simple** icon, or use plain **Initials**. Live preview.
   - **Identity** — title, name, nickname, full title
   - **Characteristics** — race, class, age, pronouns, height, weight, eyes,
     alignment, birthplace, residence
@@ -78,8 +79,13 @@ docs/                     ← GitHub Pages site root (served from main/docs)
     ├── js/icons.js        ← bundled SVG icons + WoW (Wowhead) icon helpers
     ├── js/builder.js      ← custom-sections editor
     ├── js/export.js       ← PNG / PDF / Word export + sheet rendering
+    ├── data/wow-icons.json ← full WoW icon-name library (~33k, for the picker)
     └── img/logo.svg       ← ARPO emblem
 ```
+
+The WoW icon-name list in `assets/data/wow-icons.json` is derived from the
+community [wow-listfile](https://github.com/wowdev/wow-listfile) (every
+`interface/icons/*` name); thumbnails are lazy-loaded from Wowhead's CDN.
 
 WoW icons are loaded from Wowhead's public icon CDN
 (`wow.zamimg.com`) by name; if an icon can't load, the character falls back to
