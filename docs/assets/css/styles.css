@@ -214,15 +214,25 @@ fieldset {
 legend {
   font-family: var(--font-display); color: var(--gold); padding: 0 10px; font-size: 1.05rem;
 }
-.sec-move { display: inline-flex; gap: 4px; margin-left: 8px; vertical-align: middle; }
-.field { position: relative; }
-.fld-move {
-  position: absolute; top: 0; right: 0; display: inline-flex; gap: 3px;
-  opacity: .28; transition: opacity .12s ease;
+/* drag-to-reorder handles */
+.drag-handle {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--faint); cursor: grab; touch-action: none;
+  -webkit-user-select: none; user-select: none; border-radius: 7px;
 }
-.field:hover .fld-move, .fld-move:focus-within { opacity: 1; }
-.fld-move .cs-mini { width: 22px; height: 22px; font-size: .7rem; }
-.field.full .fld-move { top: -2px; }
+.drag-handle:hover { color: var(--gold); }
+.drag-handle:active { cursor: grabbing; }
+.sec-handle { margin-left: 8px; vertical-align: middle; padding: 2px 3px; }
+.field { position: relative; }
+.fld-handle { position: absolute; top: 2px; right: 2px; width: 24px; height: 22px; opacity: .5; }
+.field:hover .fld-handle { opacity: 1; }
+.cs-item-handle, .cs-sec-handle, .glance-handle {
+  flex: 0 0 auto; width: 28px; height: 28px;
+  border: 1px solid var(--border); background: var(--panel-2);
+}
+.cs-item-handle:hover, .cs-sec-handle:hover, .glance-handle:hover { border-color: var(--gold-dim); }
+.drag-active { opacity: .6; outline: 2px dashed var(--gold-dim); outline-offset: 2px; border-radius: 10px; }
+.is-sorting { user-select: none; }
 .fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 18px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field.full { grid-column: 1 / -1; }
