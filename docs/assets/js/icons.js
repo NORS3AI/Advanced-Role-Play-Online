@@ -59,7 +59,63 @@
     { key: "star",      label: "star fate destiny hero",
       svg: '<path fill="currentColor" d="M12 2.5l2.9 5.9 6.6.9-4.8 4.6 1.2 6.6L12 17.9 6.1 20.5l1.2-6.6L2.5 9.3l6.6-.9z"/>' },
     { key: "feather",   label: "feather quill scribe writer",
-      svg: '<g '+L+'><path d="M20 4C11 4 6 9 6 17l-2 3"/><path d="M20 4c0 6-4 10-10 11"/><path d="M7.5 14.5H14"/></g>' }
+      svg: '<g '+L+'><path d="M20 4C11 4 6 9 6 17l-2 3"/><path d="M20 4c0 6-4 10-10 11"/><path d="M7.5 14.5H14"/></g>' },
+    { key: "hammer",    label: "hammer maul mace smith warrior",
+      svg: '<path fill="currentColor" d="M4 5h14v4H4z"/><path fill="currentColor" d="M9.5 9h3v11h-3z"/>' },
+    { key: "spear",     label: "spear lance polearm pike",
+      svg: '<path fill="currentColor" d="M12 2l3.2 6H8.8z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 8v13M9.5 10h5"/>' },
+    { key: "ring",      label: "ring band jewelry wedding",
+      svg: '<circle cx="12" cy="14.5" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path fill="currentColor" d="M12 2l2.6 3.6L12 9.2 9.4 5.6z"/>' },
+    { key: "lock",      label: "lock secret secure vault",
+      svg: '<path fill="currentColor" d="M5 11h14v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path fill="none" stroke="currentColor" stroke-width="2" d="M8 11V8a4 4 0 0 1 8 0v3"/>' },
+    { key: "key",       label: "key unlock access secret",
+      svg: '<circle cx="7.5" cy="8" r="3.6" fill="none" stroke="currentColor" stroke-width="2"/><g '+L+'><path d="M10 10.5L20 20"/><path d="M16 16l2.5-2.5"/><path d="M18 18l1.6-1.6"/></g>' },
+    { key: "flag",      label: "flag banner faction guild standard",
+      svg: '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 3v18"/><path fill="currentColor" d="M6 4h12l-3 3.6L18 11H6z"/>' },
+    { key: "tree",      label: "tree pine forest nature wood",
+      svg: '<path fill="currentColor" d="M12 2l5 7h-3l4 6H7l4-6H8z"/><path fill="currentColor" d="M11 15h2v5h-2z"/>' },
+    { key: "mountain",  label: "mountain peak travel highlands",
+      svg: '<path fill="currentColor" d="M3 20l6-11 4 6 2-3 6 8z"/>' },
+    { key: "droplet",   label: "droplet blood water rain tear",
+      svg: '<path fill="currentColor" d="M12 3c3.5 4.5 6 8 6 11a6 6 0 0 1-12 0c0-3 2.5-6.5 6-11z"/>' },
+    { key: "fish",      label: "fish sea food fishing",
+      svg: '<path fill="currentColor" d="M2.5 12c4-5 11-5 15 0-4 5-11 5-15 0z"/><path fill="currentColor" d="M17 12l4.5-3v6z"/>' },
+    { key: "candle",    label: "candle light lantern flame",
+      svg: '<path fill="currentColor" d="M9 9h6v11H9z"/><path fill="currentColor" d="M12 2c2.2 2.2 2.2 4.6 0 6.6-2.2-2-2.2-4.4 0-6.6z"/>' },
+    { key: "bell",      label: "bell alarm announce call",
+      svg: '<path fill="currentColor" d="M12 3a5 5 0 0 0-5 5c0 4-2 6-2 6h14s-2-2-2-6a5 5 0 0 0-5-5z"/><path fill="currentColor" d="M10.3 18a1.7 1.7 0 0 0 3.4 0z"/>' },
+    { key: "compass",   label: "compass explore direction travel navigate",
+      svg: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="currentColor" d="M12 6l2.3 5.7L12 18l-2.3-6.3z"/>' },
+    { key: "map",       label: "map travel journey quest",
+      svg: '<g '+L+'><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></g>' },
+    { key: "die",       label: "dice die gamble luck game chance",
+      svg: '<rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="15" r="1.5" fill="currentColor"/>' },
+    { key: "chalice",   label: "chalice goblet cup drink wine ale",
+      svg: '<path fill="currentColor" d="M7 4h10l-1.2 6a4 4 0 0 1-7.6 0z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 13.5v5.5M8.5 20h7"/>' },
+    { key: "scales",    label: "scales balance justice law order",
+      svg: '<g '+L+'><path d="M12 3v17"/><path d="M8 20h8"/><path d="M4 8h16"/></g><path fill="currentColor" d="M1.6 12l2.4-4 2.4 4z"/><path fill="currentColor" d="M17.6 12l2.4-4 2.4 4z"/><circle cx="12" cy="5.5" r="1.6" fill="currentColor"/>' },
+    { key: "torch",     label: "torch fire light flame beacon",
+      svg: '<path fill="currentColor" d="M12 2c2.6 2.6 2.6 5.2 0 7.8-2.6-2.6-2.6-5.2 0-7.8z"/><path fill="currentColor" d="M9 9.5h6l-1 2.2h-4z"/><path fill="currentColor" d="M10.4 11.5h3.2l-.5 8.5h-2.2z"/>' },
+    { key: "target",    label: "target bullseye hunter aim goal focus",
+      svg: '<g '+L+'><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></g><circle cx="12" cy="12" r="1.7" fill="currentColor"/>' },
+    { key: "sparkles",  label: "sparkles magic shiny glitter enchant",
+      svg: '<path fill="currentColor" d="M11 2l1.9 5.1L18 9l-5.1 1.9L11 16l-1.9-5.1L4 9l5.1-1.9z"/><path fill="currentColor" d="M18 13l.9 2.1L21 16l-2.1.9L18 19l-.9-2.1L15 16l2.1-.9z"/>' },
+    { key: "hourglass", label: "hourglass time sand wait patience",
+      svg: '<path fill="currentColor" d="M6 3h12v2.5c0 3-3 5-6 6.5 3 1.5 6 3.5 6 6.5V21H6v-2.5c0-3 3-5 6-6.5-3-1.5-6-3.5-6-6.5z"/>' },
+    { key: "horns",     label: "horns demon fel evil beast",
+      svg: '<g '+L+'><path d="M4 4c0 6 3.2 9.5 8 10.5M20 4c0 6-3.2 9.5-8 10.5"/></g>' },
+    { key: "coin",      label: "coin gold money currency wealth",
+      svg: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5.4" fill="none" stroke="currentColor" stroke-width="2"/>' },
+    { key: "bone",      label: "bone death skeleton beast pet",
+      svg: '<path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" d="M7 8.5l9.5 9.5"/><circle cx="6" cy="6.6" r="2.1" fill="currentColor"/><circle cx="8.2" cy="8.8" r="2.1" fill="currentColor"/><circle cx="15.8" cy="15.2" r="2.1" fill="currentColor"/><circle cx="18" cy="17.4" r="2.1" fill="currentColor"/>' },
+    { key: "arrow",     label: "arrow direction move next go",
+      svg: '<g '+L+'><path d="M4 12h14"/><path d="M12 6l6 6-6 6"/></g>' },
+    { key: "cloud",     label: "cloud sky weather storm",
+      svg: '<path fill="currentColor" d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.4A3.5 3.5 0 0 1 18 18z"/>' },
+    { key: "wave",      label: "wave water sea ocean tide sailor",
+      svg: '<g '+L+'><path d="M2 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 19c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></g>' },
+    { key: "wing",      label: "wing angel valkyr flight holy",
+      svg: '<path fill="currentColor" d="M3 7c7 0 13.5 3 18 11-5-3-9-3-13-2 3-2.5 2.5-6-5-9z"/>' }
   ];
 
   ARPO.ICON_MAP = {};
@@ -72,6 +128,17 @@
   ARPO.wowIconUrl = function (name, size) {
     return ARPO.WOW_ICON_BASE + (size || "large") + "/" +
       String(name || "").trim().toLowerCase() + ".jpg";
+  };
+
+  // Load the full icon-name library once (cached); falls back to the curated set.
+  ARPO.loadWowLibrary = function () {
+    if (ARPO._wowLibPromise) return ARPO._wowLibPromise;
+    ARPO._wowLib = ARPO.WOW_ICONS.slice();
+    ARPO._wowLibPromise = fetch("assets/data/wow-icons.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (list) { if (list && list.length) ARPO._wowLib = list; return ARPO._wowLib; })
+      .catch(function () { return ARPO._wowLib; });
+    return ARPO._wowLibPromise;
   };
   ARPO.WOW_ICONS = [
     // Weapons & combat
