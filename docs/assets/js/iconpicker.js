@@ -68,6 +68,17 @@
       updateCount();
       if (shown >= filtered.length && obs) obs.unobserve(sentinel);
     }
+    // Add batches (one per frame, so layout settles between them) until the
+    // grid actually overflows its panel and becomes a real scroll area —
+    // otherwise there's nothing to scroll and the observer, which only fires
+    // on state changes, never asks for more. The scroll then loads the rest.
+    function ensureFilled() {
+      if (!overlay.isConnected || src === "svg") return;
+      if (shown >= filtered.length || shown >= 1000) return;   // cap; scroll loads the rest
+      if (grid.scrollHeight > grid.clientHeight + 40) return;   // already scrollable
+      appendBatch();
+      requestAnimationFrame(ensureFilled);
+    }
     function reset(q) {
       q = (q || "").trim().toLowerCase();
       if (src === "svg") filtered = ARPO.ICONS.filter(function (i) { return !q || i.key.indexOf(q) !== -1 || i.label.indexOf(q) !== -1; });
@@ -78,6 +89,7 @@
       if (!obs) obs = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) appendBatch(); }); }, { root: grid, rootMargin: "300px" });
       obs.observe(sentinel);
       appendBatch();
+      ensureFilled();
     }
 
     var t;
@@ -92,6 +104,12 @@
     seg.addEventListener("click", function (e) {
       var btn = e.target.closest(".seg-btn"); if (!btn) return;
       src = btn.dataset.src; markSeg(); reset(search.value);
+    });
+    // Fallback to the IntersectionObserver: load the next batch as the grid
+    // nears its bottom (covers browsers where the sentinel observer misfires).
+    grid.addEventListener("scroll", function () {
+      if (src === "svg" || shown >= filtered.length) return;
+      if (grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 400) appendBatch();
     });
 
     function onKey(e) { if (e.key === "Escape") close(); }
