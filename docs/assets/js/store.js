@@ -96,7 +96,10 @@
     var s = {};
     try { s = JSON.parse(localStorage.getItem(ARPO.SETTINGS_KEY)) || {}; } catch (e) { s = {}; }
     return {
-      displayName: s.displayName != null ? s.displayName : "Rielle",
+      // No name is known until the player sets one — browsers never expose
+      // the profile name to a web page, so this is the only source. It's kept
+      // in this browser profile only (localStorage is per-profile).
+      displayName: s.displayName != null ? s.displayName : "",
       hideGreeting: !!s.hideGreeting
     };
   };
@@ -104,8 +107,12 @@
     try { localStorage.setItem(ARPO.SETTINGS_KEY, JSON.stringify(s)); return true; } catch (e) { return false; }
   };
   ARPO.greetingName = function () {
-    var n = (ARPO.loadSettings().displayName || "").trim();
-    return n || "Rielle";
+    return (ARPO.loadSettings().displayName || "").trim();
+  };
+  // "Hello <name>" when this browser profile has a name saved, else "Hello!".
+  ARPO.greeting = function () {
+    var n = ARPO.greetingName();
+    return n ? "Hello " + n : "Hello!";
   };
 
   // ---- display helpers ---------------------------------------------------
