@@ -240,6 +240,9 @@ fieldset.collapsed > *:not(legend) { display: none; }
 .field:hover .fld-ctrls, .fld-ctrls:focus-within { opacity: 1; }
 .fld-handle { width: 24px; height: 22px; }
 .fld-remove { width: 22px; height: 22px; font-size: .75rem; }
+/* the reorderable sections are nested in this wrapper, so re-create the
+   form's spacing here (fieldsets have margin:0 and would otherwise touch) */
+#sortable-sections { display: flex; flex-direction: column; gap: 22px; }
 #sortable-sections .field > label { padding-right: 56px; }
 .cs-item-handle, .cs-sec-handle, .glance-handle {
   flex: 0 0 auto; width: 28px; height: 28px;
