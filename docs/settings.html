@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css?v=19">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20">
 </head>
 <body>
   <header class="site-header">
@@ -57,9 +57,17 @@
         <button class="btn btn-primary" type="submit">Save Settings</button>
       </div>
     </form>
+
+    <fieldset class="character-form" style="max-width:640px">
+      <legend>About</legend>
+      <p class="app-creator">App creator: <strong>Z</strong></p>
+      <h3 style="margin:14px 0 2px">Patch notes</h3>
+      <p class="help" style="margin:0">Newest first — tap one to expand.</p>
+      <div id="patch-notes" class="patch-notes"></div>
+    </fieldset>
   </main>
 
-  <script src="assets/js/store.js?v=19"></script>
+  <script src="assets/js/store.js?v=20"></script>
   <script>
     (function () {
       var form = document.getElementById("settings-form");
@@ -77,6 +85,57 @@
           hideGreeting: hide.checked
         });
         ARPO.toast("Settings saved");
+      });
+
+      // ---- patch notes -----------------------------------------------------
+      // Each note is its own collapsed <details> block, so a very long note
+      // stays unrendered until opened and never bogs the page down.
+      var NOTES = [
+        { ver: "1.6", date: "Sep 14, 2026", title: "Editor polish & icon fixes", items: [
+          "Fixed the character-editor sections overlapping — they’re evenly spaced now.",
+          "Fixed WoW icons stacking on top of each other in the icon picker (iPad / Safari).",
+          "Home greeting shows the name you set here (saved per browser profile), or just “Hello!”."
+        ]},
+        { ver: "1.5", date: "Sep 10, 2026", title: "Full icon library", items: [
+          "The WoW icon picker now scrolls through all 33,053 icons with fade-in loading.",
+          "Search any icon by name — sword, holy, wolf, and so on."
+        ]},
+        { ver: "1.4", date: "Sep 9, 2026", title: "Flexible blocks", items: [
+          "Rename any section with the pencil — the name shows on your profile too.",
+          "Add custom rows (text, slider, comparison, icon, image, link, button) to any block.",
+          "Collapse a section, remove any row, or remove a whole block.",
+          "Reorder sections and fields by holding the drag handle (safe on touch — no accidental moves)."
+        ]},
+        { ver: "1.3", date: "Sep 8, 2026", title: "Comparison, At a Glance & Guild", items: [
+          "Comparison element: a slider between two labels using your chosen colors, with copy/paste colors.",
+          "Duplicate any custom row.",
+          "“At a Glance” quick-facts strip (up to 10) and a Guild & Social section."
+        ]},
+        { ver: "1.2", date: "Sep 7, 2026", title: "Exports & sharing", items: [
+          "Save a character as PNG, PDF, or Word from the “…” menu.",
+          "Share a character with a link — no account needed."
+        ]},
+        { ver: "1.1", date: "Sep 7, 2026", title: "Personalization", items: [
+          "Settings: choose what the home page calls you, or hide the greeting.",
+          "Pick an accent color and an icon (Wowhead or a bundled simple set) for each character."
+        ]},
+        { ver: "1.0", date: "Sep 6, 2026", title: "Launch", items: [
+          "Create, manage, and view TRP3-style WoW character profiles.",
+          "Everything is saved privately in your browser — no account required."
+        ]}
+      ];
+      var esc = ARPO.escapeHtml;
+      var host = document.getElementById("patch-notes");
+      NOTES.forEach(function (n) {
+        var d = document.createElement("details");
+        d.className = "patch-note";
+        var body = "<ul>" + n.items.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("") + "</ul>";
+        d.innerHTML =
+          "<summary><span class='pn-ver'>v" + esc(n.ver) + "</span>" +
+          "<span class='pn-title'>" + esc(n.title) + "</span>" +
+          "<span class='pn-date'>" + esc(n.date) + "</span></summary>" +
+          "<div class='pn-body'>" + body + "</div>";
+        host.appendChild(d);
       });
     })();
   </script>
